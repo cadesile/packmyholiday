@@ -43,6 +43,16 @@ export interface PackingItem {
   iconName?: string;
 }
 
+export interface BabyEssentialSpec {
+  id: string;
+  name: string;
+  category: PackingItem['category'];
+  iconName: string;
+  quantityFormula: (effectiveDays: number) => number;
+  baseWeightGrams: number;
+  appliesWhen?: (config: TripConfig) => boolean;
+}
+
 export interface PackingPlan {
   items: PackingItem[];
   totalEstimatedWeightKg: number;

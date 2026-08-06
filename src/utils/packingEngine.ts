@@ -149,12 +149,13 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
 
     if (traveler.ageGroup === 'infant') {
       for (const spec of INFANT_ESSENTIALS) {
+        if (spec.appliesWhen && !spec.appliesWhen(config)) continue;
         const quantity = roundQty(spec.quantityFormula(effectiveDays));
         if (quantity <= 0) continue;
         items.push({
           id: idGen(),
           name: spec.name,
-          category: 'essentials',
+          category: spec.category,
           quantity,
           estimatedWeightGrams: roundWeight(spec.baseWeightGrams),
           packed: false,

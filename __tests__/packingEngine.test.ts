@@ -106,6 +106,47 @@ describe('generatePackingPlan — demographic multipliers', () => {
     expect(mat.quantity).toBe(1);
     expect(diapers.assignedTravelerId).toBe('i');
   });
+
+  it('adds the expanded infant clothing/feeding items with correct categories and quantities', () => {
+    const config = makeConfig({ travelers: [makeTraveler({ id: 'i', ageGroup: 'infant' })], durationDays: 6 });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+
+    const onesies = itemsFor(plan.items, 'Onesies / Bodysuits')[0];
+    expect(onesies.category).toBe('clothing');
+    expect(onesies.quantity).toBe(Math.ceil(6 * 1.5) + 1);
+
+    const sleepsuits = itemsFor(plan.items, 'Footed Sleepsuits')[0];
+    expect(sleepsuits.quantity).toBe(Math.ceil(6 / 2) + 1);
+
+    const formula = itemsFor(plan.items, 'Formula Powder (tin)')[0];
+    expect(formula.category).toBe('essentials');
+    expect(formula.quantity).toBe(Math.ceil(6 / 5) + 1);
+
+    const muslins = itemsFor(plan.items, 'Muslin / Burp Cloths')[0];
+    expect(muslins.quantity).toBe(6);
+
+    const rashCream = itemsFor(plan.items, 'Diaper Rash Cream')[0];
+    expect(rashCream.category).toBe('toiletries');
+  });
+
+  it('only adds swim diapers when the beach activity is selected', () => {
+    const beachConfig = makeConfig({
+      travelers: [makeTraveler({ id: 'i', ageGroup: 'infant' })],
+      durationDays: 6,
+      activities: ['beach'],
+    });
+    const noBeachConfig = makeConfig({
+      travelers: [makeTraveler({ id: 'i', ageGroup: 'infant' })],
+      durationDays: 6,
+      activities: [],
+    });
+
+    const beachPlan = generatePackingPlan(beachConfig, { idGenerator: makeStubIdGen() });
+    const noBeachPlan = generatePackingPlan(noBeachConfig, { idGenerator: makeStubIdGen() });
+
+    expect(itemsFor(beachPlan.items, 'Swim Diapers')).toHaveLength(1);
+    expect(itemsFor(noBeachPlan.items, 'Swim Diapers')).toHaveLength(0);
+  });
 });
 
 describe('generatePackingPlan — climate modifiers', () => {
