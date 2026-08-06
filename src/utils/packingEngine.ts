@@ -224,7 +224,7 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
 
   if (config.toiletryStrategy === 'pack') {
     const isCarryOnOnly = config.checkedBags === 0;
-    const sunscreen = calculateSunscreenRequirements(travelers, config.activities, durationDays, isCarryOnOnly);
+    const sunscreen = calculateSunscreenRequirements(travelers, config.activities, durationDays, isCarryOnOnly, config.climate);
     if (sunscreen.totalVolumeMl > 0) {
       items.push({
         id: idGen(),

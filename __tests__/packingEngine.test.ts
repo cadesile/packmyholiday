@@ -329,10 +329,16 @@ describe('generatePackingPlan — toiletryStrategy', () => {
   });
 
   it('includes packed toiletries and sunscreen when pack is selected', () => {
-    const config = makeConfig({ toiletryStrategy: 'pack', activities: ['beach'] });
+    const config = makeConfig({ toiletryStrategy: 'pack', activities: ['beach'], climate: 'warm' });
     const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
     expect(itemsFor(plan.items, 'Toothbrush')).toHaveLength(1);
     expect(itemsFor(plan.items, 'Sunscreen')).toHaveLength(1);
+  });
+
+  it('excludes sunscreen for a non-warm climate even when toiletryStrategy is pack', () => {
+    const config = makeConfig({ toiletryStrategy: 'pack', activities: ['beach'], climate: 'cold' });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+    expect(itemsFor(plan.items, 'Sunscreen')).toHaveLength(0);
   });
 
   it('still includes unconditional health/bug items regardless of toiletryStrategy', () => {
