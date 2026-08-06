@@ -44,6 +44,36 @@ describe('setTripDates', () => {
     useTripStore.getState().setTripDates('2026-08-16', '2026-08-10');
     expect(useTripStore.getState().draftConfig).toEqual(before);
   });
+
+  it('does not trigger a weather fetch when no location is selected', () => {
+    useTripStore.getState().setTripDates('2026-08-10', '2026-08-16');
+    expect(mockGetTripWeather).not.toHaveBeenCalled();
+  });
+
+  it('re-fetches weather when a location is already selected', async () => {
+    useTripStore.setState((state) => ({ draftConfig: { ...state.draftConfig, location: LONDON } }));
+    mockGetTripWeather.mockResolvedValue({
+      isHistoricalEstimate: false,
+      summary: {
+        avgTempC: 18,
+        minTempC: 12,
+        maxTempC: 24,
+        overallCondition: 'sunny',
+        totalRainExpectedMm: 0,
+        maxRainProbabilityPct: 5,
+        climateTags: ['warm'],
+      },
+      dailyBreakdown: [],
+    });
+    mockDeriveClimateType.mockReturnValue('warm');
+
+    useTripStore.getState().setTripDates('2026-08-10', '2026-08-16');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockGetTripWeather).toHaveBeenCalledTimes(1);
+    expect(mockGetTripWeather).toHaveBeenCalledWith(LONDON, '2026-08-10', '2026-08-16');
+  });
 });
 
 describe('selectLocation', () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { WizardStepLayout } from '../../components/WizardStepLayout';
 import { AirlinePicker } from '../../components/AirlinePicker';
 import { LocationSearchInput } from '../../components/LocationSearchInput';
@@ -24,6 +24,7 @@ export function Step1LogisticsAirline() {
   const setTripDates = useTripStore((s) => s.setTripDates);
   const weatherLookupError = useTripStore((s) => s.weatherLookupError);
   const nextStep = useTripStore((s) => s.nextStep);
+  const theme = useTheme();
 
   return (
     <WizardStepLayout title="Logistics & Airline" stepNumber={1} totalSteps={5} onNext={nextStep}>
@@ -41,7 +42,7 @@ export function Step1LogisticsAirline() {
         </Text>
       ) : null}
       {weatherLookupError ? (
-        <Text variant="bodySmall" style={styles.errorHint}>
+        <Text variant="bodySmall" style={{ color: theme.colors.error }}>
           Couldn&apos;t fetch weather ({weatherLookupError}) — pick a climate below.
         </Text>
       ) : null}
@@ -71,8 +72,5 @@ const styles = StyleSheet.create({
   },
   weatherHint: {
     fontStyle: 'italic',
-  },
-  errorHint: {
-    color: '#B3261E',
   },
 });

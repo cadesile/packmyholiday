@@ -113,6 +113,9 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
     if (endDate < startDate) return;
     const durationDays = computeDurationDays(startDate, endDate);
     set((state) => ({ draftConfig: { ...state.draftConfig, startDate, endDate, durationDays } }));
+    if (get().draftConfig.location) {
+      void get().fetchWeather();
+    }
   },
 
   selectLocation: (location) => {
