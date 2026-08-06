@@ -1,3 +1,5 @@
+import type { LocationResult, WeatherProfile } from '../services/weather/types';
+
 export type AgeGroup = 'adult' | 'child' | 'toddler' | 'infant';
 export type StylePreference = 'masculine' | 'feminine' | 'unisex';
 export type ActivityType =
@@ -21,9 +23,13 @@ export interface Traveler {
 
 export interface TripConfig {
   destination: string;
+  location?: LocationResult;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   airlineId?: string;
   climate: ClimateType;
   durationDays: number;
+  weatherProfile?: WeatherProfile;
   travelers: Traveler[];
   checkedBags: number; // ~23kg capacity each
   cabinBags: number; // ~10kg capacity each

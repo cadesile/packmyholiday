@@ -13,6 +13,8 @@ function makeTraveler(overrides: Partial<Traveler> = {}): Traveler {
 function makeConfig(overrides: Partial<TripConfig> = {}): TripConfig {
   return {
     destination: 'Test City',
+    startDate: '2026-08-06',
+    endDate: '2026-08-10',
     climate: 'mild' as ClimateType,
     durationDays: 5,
     travelers: [makeTraveler({ id: 'traveler-1' })],
