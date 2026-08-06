@@ -1,0 +1,87 @@
+import type { BabyEssentialSpec } from '../types/packing';
+
+// Fixed-quantity toddler (1-3yr) pack. Not subject to the demographic
+// clothing multiplier — these are absolute-quantity items.
+export const TODDLER_ESSENTIALS: BabyEssentialSpec[] = [
+  {
+    id: 'toddler_tops_bottoms',
+    name: 'Easy-On Tops & Bottoms',
+    category: 'clothing',
+    iconName: 'tshirt-crew-outline',
+    quantityFormula: (effectiveDays) => effectiveDays + 1,
+    baseWeightGrams: 150,
+  },
+  {
+    id: 'toddler_swimwear',
+    name: 'Swimwear (UV Rash Guard)',
+    category: 'clothing',
+    iconName: 'swim',
+    quantityFormula: () => 2,
+    baseWeightGrams: 120,
+    appliesWhen: (config) => config.activities.includes('beach'),
+  },
+  {
+    id: 'toddler_pyjamas',
+    name: 'Pyjamas',
+    category: 'clothing',
+    iconName: 'weather-night',
+    quantityFormula: (effectiveDays) => Math.ceil(effectiveDays / 3),
+    baseWeightGrams: 180,
+  },
+  {
+    id: 'toddler_sun_hat',
+    name: 'Sun Hat',
+    category: 'clothing',
+    iconName: 'hat-fedora',
+    quantityFormula: () => 1,
+    baseWeightGrams: 40,
+  },
+  {
+    id: 'toddler_sunglasses',
+    name: 'Sunglasses',
+    category: 'essentials',
+    iconName: 'sunglasses',
+    quantityFormula: () => 1,
+    baseWeightGrams: 30,
+  },
+  {
+    id: 'toddler_water_bottle',
+    name: 'Leak-Proof Water Bottle',
+    category: 'essentials',
+    iconName: 'bottle-water-outline',
+    quantityFormula: () => 1,
+    baseWeightGrams: 150,
+  },
+  {
+    id: 'toddler_snacks',
+    name: 'Low-Mess Snack Packs',
+    category: 'essentials',
+    iconName: 'food-apple-outline',
+    quantityFormula: (effectiveDays) => Math.ceil(effectiveDays / 2) + 1,
+    baseWeightGrams: 300,
+  },
+  {
+    id: 'toddler_bento_box',
+    name: 'Bento Snack Box',
+    category: 'essentials',
+    iconName: 'food-variant',
+    quantityFormula: () => 1,
+    baseWeightGrams: 120,
+  },
+  {
+    id: 'toddler_comfort_item',
+    name: 'Comfort Item / Lovey',
+    category: 'essentials',
+    iconName: 'teddy-bear',
+    quantityFormula: () => 1,
+    baseWeightGrams: 150,
+  },
+  {
+    id: 'toddler_quiet_toys',
+    name: 'Quiet Toys / Sticker Book',
+    category: 'essentials',
+    iconName: 'toy-brick-outline',
+    quantityFormula: () => 2,
+    baseWeightGrams: 80,
+  },
+];

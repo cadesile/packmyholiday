@@ -1,6 +1,7 @@
 import type { ActivityType, AgeGroup, PackingItem, PackingPlan, Traveler, TripConfig } from '../types/packing';
 import { CATALOG_ENTRIES, FOOTWEAR_ITEMS, type CatalogEntry, type EngineContext } from '../data/itemCatalog';
 import { INFANT_ESSENTIALS } from '../data/infantEssentials';
+import { TODDLER_ESSENTIALS } from '../data/toddlerEssentials';
 import {
   ADULT_SHOE_WEIGHT_GRAMS,
   CABIN_BAG_CAPACITY_KG,
@@ -149,6 +150,24 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
 
     if (traveler.ageGroup === 'infant') {
       for (const spec of INFANT_ESSENTIALS) {
+        if (spec.appliesWhen && !spec.appliesWhen(config)) continue;
+        const quantity = roundQty(spec.quantityFormula(effectiveDays));
+        if (quantity <= 0) continue;
+        items.push({
+          id: idGen(),
+          name: spec.name,
+          category: spec.category,
+          quantity,
+          estimatedWeightGrams: roundWeight(spec.baseWeightGrams),
+          packed: false,
+          assignedTravelerId: traveler.id,
+          iconName: spec.iconName,
+        });
+      }
+    }
+
+    if (traveler.ageGroup === 'toddler') {
+      for (const spec of TODDLER_ESSENTIALS) {
         if (spec.appliesWhen && !spec.appliesWhen(config)) continue;
         const quantity = roundQty(spec.quantityFormula(effectiveDays));
         if (quantity <= 0) continue;
