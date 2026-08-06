@@ -45,6 +45,7 @@ export interface PackingItem {
   quantity: number;
   estimatedWeightGrams: number;
   packed: boolean;
+  excluded?: boolean;
   assignedTravelerId?: string;
   iconName?: string;
 }

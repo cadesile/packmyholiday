@@ -1,5 +1,5 @@
-import { generatePackingPlan, resolveFootwear } from '../src/utils/packingEngine';
-import type { ActivityType, ClimateType, Traveler, TripConfig } from '../src/types/packing';
+import { generatePackingPlan, resolveFootwear, sumWeightKg } from '../src/utils/packingEngine';
+import type { ActivityType, ClimateType, PackingItem, Traveler, TripConfig } from '../src/types/packing';
 
 function makeStubIdGen() {
   let n = 0;
@@ -403,5 +403,36 @@ describe('generatePackingPlan — determinism', () => {
     const planA = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
     const planB = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
     expect(planA).toEqual(planB);
+  });
+});
+
+function makeItem(overrides: Partial<PackingItem> = {}): PackingItem {
+  return {
+    id: 'item-1',
+    name: 'Test Item',
+    category: 'clothing',
+    quantity: 1,
+    estimatedWeightGrams: 100,
+    packed: false,
+    ...overrides,
+  };
+}
+
+describe('sumWeightKg', () => {
+  it('returns 0 for an empty item list', () => {
+    expect(sumWeightKg([])).toBe(0);
+  });
+
+  it('sums weight across quantity and multiple items, converting grams to kg', () => {
+    const items = [
+      makeItem({ estimatedWeightGrams: 200, quantity: 2 }), // 400g
+      makeItem({ id: 'item-2', estimatedWeightGrams: 600, quantity: 1 }), // 600g
+    ];
+    expect(sumWeightKg(items)).toBe(1); // 1000g -> 1kg
+  });
+
+  it('ignores excluded flag — callers are responsible for pre-filtering', () => {
+    const items = [makeItem({ estimatedWeightGrams: 500, quantity: 1, excluded: true })];
+    expect(sumWeightKg(items)).toBe(0.5);
   });
 });

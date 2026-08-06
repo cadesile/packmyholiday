@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { PackingPlan, Traveler, TripConfig } from '../types/packing';
-import { generatePackingPlan } from '../utils/packingEngine';
+import { generatePackingPlan, sumWeightKg } from '../utils/packingEngine';
 import { defaultIdGenerator } from '../utils/id';
 import { loadSavedTrips, persistSavedTrips, type SavedTrip } from './storage';
 import { computeDurationDays, toISODateString } from '../utils/tripDates';
@@ -76,6 +76,8 @@ interface TripStoreState {
   selectAirline: (airlineId: string | undefined) => void;
   computePlan: () => void;
   toggleItemPacked: (itemId: string) => void;
+  toggleItemExcluded: (itemId: string) => void;
+  removeItem: (itemId: string) => void;
   saveTrip: (name: string) => Promise<void>;
   loadTrip: (id: string) => void;
   deleteTrip: (id: string) => Promise<void>;
@@ -182,6 +184,40 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
           items: state.currentPlan.items.map((item) =>
             item.id === itemId ? { ...item, packed: !item.packed } : item
           ),
+        },
+      };
+    });
+  },
+
+  toggleItemExcluded: (itemId) => {
+    set((state) => {
+      if (!state.currentPlan) return state;
+      const items = state.currentPlan.items.map((item) =>
+        item.id === itemId ? { ...item, excluded: !item.excluded } : item
+      );
+      const totalEstimatedWeightKg = sumWeightKg(items.filter((item) => !item.excluded));
+      return {
+        currentPlan: {
+          ...state.currentPlan,
+          items,
+          totalEstimatedWeightKg,
+          isOverWeight: totalEstimatedWeightKg > state.currentPlan.maxAllowedWeightKg,
+        },
+      };
+    });
+  },
+
+  removeItem: (itemId) => {
+    set((state) => {
+      if (!state.currentPlan) return state;
+      const items = state.currentPlan.items.filter((item) => item.id !== itemId);
+      const totalEstimatedWeightKg = sumWeightKg(items.filter((item) => !item.excluded));
+      return {
+        currentPlan: {
+          ...state.currentPlan,
+          items,
+          totalEstimatedWeightKg,
+          isOverWeight: totalEstimatedWeightKg > state.currentPlan.maxAllowedWeightKg,
         },
       };
     });

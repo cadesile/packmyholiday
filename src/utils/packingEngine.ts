@@ -66,6 +66,10 @@ function computeMaxWeightKg(config: TripConfig): number {
   return config.checkedBags * CHECKED_BAG_CAPACITY_KG + config.cabinBags * CABIN_BAG_CAPACITY_KG;
 }
 
+export function sumWeightKg(items: PackingItem[]): number {
+  return roundWeight(items.reduce((sum, item) => sum + item.estimatedWeightGrams * item.quantity, 0)) / 1000;
+}
+
 function runOverweightSuggestionRules(config: TripConfig, items: PackingItem[]): string[] {
   const suggestions: string[] = [];
 
@@ -243,8 +247,7 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
 
   items.push(...generateHealthAndBugItems(config.climate, config.activities, travelers.length, idGen));
 
-  const totalEstimatedWeightKg =
-    roundWeight(items.reduce((sum, item) => sum + item.estimatedWeightGrams * item.quantity, 0)) / 1000;
+  const totalEstimatedWeightKg = sumWeightKg(items);
 
   const isOverWeight = totalEstimatedWeightKg > maxAllowedWeightKg;
   if (isOverWeight) {

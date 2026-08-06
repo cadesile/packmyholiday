@@ -12,6 +12,29 @@ jest.mock('../src/services/weather/factory', () => ({
 
 import { useTripStore } from '../src/state/useTripStore';
 import type { LocationResult } from '../src/services/weather/types';
+import type { PackingItem, PackingPlan } from '../src/types/packing';
+
+function makeItem(overrides: Partial<PackingItem> = {}): PackingItem {
+  return {
+    id: 'item-1',
+    name: 'Test Item',
+    category: 'clothing',
+    quantity: 1,
+    estimatedWeightGrams: 500,
+    packed: false,
+    ...overrides,
+  };
+}
+
+function makePlan(items: PackingItem[]): PackingPlan {
+  return {
+    items,
+    totalEstimatedWeightKg: 999, // deliberately wrong, to prove the actions recompute it
+    maxAllowedWeightKg: 23,
+    isOverWeight: false,
+    optimizationSuggestions: [],
+  };
+}
 
 const LONDON: LocationResult = {
   id: '1',
@@ -146,5 +169,82 @@ describe('fetchWeather', () => {
     const { draftConfig, weatherLookupError } = useTripStore.getState();
     expect(draftConfig.climate).toBe('mild');
     expect(weatherLookupError).toBe('network down');
+  });
+});
+
+describe('toggleItemExcluded', () => {
+  it('flips excluded on the matching item and recomputes weight, ignoring excluded items', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([
+        makeItem({ id: 'a', estimatedWeightGrams: 500 }),
+        makeItem({ id: 'b', estimatedWeightGrams: 500 }),
+      ]),
+    });
+
+    useTripStore.getState().toggleItemExcluded('a');
+
+    const { currentPlan } = useTripStore.getState();
+    expect(currentPlan?.items.find((i) => i.id === 'a')?.excluded).toBe(true);
+    expect(currentPlan?.items.find((i) => i.id === 'b')?.excluded).toBeFalsy();
+    expect(currentPlan?.totalEstimatedWeightKg).toBe(0.5); // only item 'b' counts now
+  });
+
+  it('restores an excluded item back into the weight total when toggled again', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([makeItem({ id: 'a', estimatedWeightGrams: 500, excluded: true })]),
+    });
+
+    useTripStore.getState().toggleItemExcluded('a');
+
+    const { currentPlan } = useTripStore.getState();
+    expect(currentPlan?.items[0].excluded).toBe(false);
+    expect(currentPlan?.totalEstimatedWeightKg).toBe(0.5);
+  });
+
+  it('does nothing when there is no current plan', () => {
+    useTripStore.setState({ currentPlan: null });
+    expect(() => useTripStore.getState().toggleItemExcluded('a')).not.toThrow();
+    expect(useTripStore.getState().currentPlan).toBeNull();
+  });
+});
+
+describe('removeItem', () => {
+  it('removes the item from the plan and recomputes weight', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([
+        makeItem({ id: 'a', estimatedWeightGrams: 500 }),
+        makeItem({ id: 'b', estimatedWeightGrams: 500 }),
+      ]),
+    });
+
+    useTripStore.getState().removeItem('a');
+
+    const { currentPlan } = useTripStore.getState();
+    expect(currentPlan?.items.map((i) => i.id)).toEqual(['b']);
+    expect(currentPlan?.totalEstimatedWeightKg).toBe(0.5);
+  });
+
+  it('recomputes isOverWeight after removal', () => {
+    useTripStore.setState({
+      currentPlan: {
+        ...makePlan([
+          makeItem({ id: 'a', estimatedWeightGrams: 20_000_000 }), // way over budget
+          makeItem({ id: 'b', estimatedWeightGrams: 500 }),
+        ]),
+        maxAllowedWeightKg: 23,
+        isOverWeight: true,
+      },
+    });
+
+    useTripStore.getState().removeItem('a');
+
+    const { currentPlan } = useTripStore.getState();
+    expect(currentPlan?.isOverWeight).toBe(false);
+  });
+
+  it('does nothing when there is no current plan', () => {
+    useTripStore.setState({ currentPlan: null });
+    expect(() => useTripStore.getState().removeItem('a')).not.toThrow();
+    expect(useTripStore.getState().currentPlan).toBeNull();
   });
 });
