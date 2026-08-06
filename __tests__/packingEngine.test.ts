@@ -180,6 +180,34 @@ describe('generatePackingPlan — demographic multipliers', () => {
     expect(itemsFor(beachPlan.items, 'Swimwear (UV Rash Guard)')).toHaveLength(1);
     expect(itemsFor(noBeachPlan.items, 'Swimwear (UV Rash Guard)')).toHaveLength(0);
   });
+
+  it('adds shared baby/toddler family gear once per trip, not per baby traveler', () => {
+    const config = makeConfig({
+      travelers: [
+        makeTraveler({ id: 'i1', ageGroup: 'infant' }),
+        makeTraveler({ id: 't1', ageGroup: 'toddler' }),
+      ],
+    });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+
+    const stroller = itemsFor(plan.items, 'Travel Stroller / Buggy');
+    expect(stroller).toHaveLength(1);
+    expect(stroller[0].assignedTravelerId).toBeUndefined();
+
+    const monitor = itemsFor(plan.items, 'Baby Monitor');
+    expect(monitor).toHaveLength(1);
+    expect(monitor[0].category).toBe('electronics');
+
+    expect(itemsFor(plan.items, 'Baby Carrier / Wrap')).toHaveLength(1);
+    expect(itemsFor(plan.items, 'Blackout Blind')).toHaveLength(1);
+    expect(itemsFor(plan.items, 'Digital Thermometer')).toHaveLength(1);
+  });
+
+  it('does not add baby family gear when no traveler is infant or toddler', () => {
+    const config = makeConfig({ travelers: [makeTraveler({ id: 'a', ageGroup: 'adult' })] });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+    expect(itemsFor(plan.items, 'Travel Stroller / Buggy')).toHaveLength(0);
+  });
 });
 
 describe('generatePackingPlan — climate modifiers', () => {

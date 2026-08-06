@@ -2,6 +2,7 @@ import type { ActivityType, AgeGroup, PackingItem, PackingPlan, Traveler, TripCo
 import { CATALOG_ENTRIES, FOOTWEAR_ITEMS, type CatalogEntry, type EngineContext } from '../data/itemCatalog';
 import { INFANT_ESSENTIALS } from '../data/infantEssentials';
 import { TODDLER_ESSENTIALS } from '../data/toddlerEssentials';
+import { BABY_FAMILY_GEAR } from '../data/babyFamilyGear';
 import {
   ADULT_SHOE_WEIGHT_GRAMS,
   CABIN_BAG_CAPACITY_KG,
@@ -182,6 +183,23 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
           iconName: spec.iconName,
         });
       }
+    }
+  }
+
+  const hasBabyTraveler = travelers.some((t) => t.ageGroup === 'infant' || t.ageGroup === 'toddler');
+  if (hasBabyTraveler) {
+    for (const spec of BABY_FAMILY_GEAR) {
+      const quantity = roundQty(spec.quantityFormula());
+      if (quantity <= 0) continue;
+      items.push({
+        id: idGen(),
+        name: spec.name,
+        category: spec.category,
+        quantity,
+        estimatedWeightGrams: roundWeight(spec.baseWeightGrams),
+        packed: false,
+        iconName: spec.iconName,
+      });
     }
   }
 
