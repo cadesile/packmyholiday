@@ -23,3 +23,21 @@ export function shiftYear(dateStr: string, years: number): string {
   d.setUTCFullYear(d.getUTCFullYear() + years);
   return toISODateString(d);
 }
+
+export function formatDisplayDate(iso: string): string {
+  return parseISODate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
+function formatShortDate(iso: string): string {
+  return parseISODate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
+export function formatDateRange(startDate: string, endDate: string): string {
+  if (startDate === endDate) {
+    return formatDisplayDate(startDate);
+  }
+  const sameYear = parseISODate(startDate).getUTCFullYear() === parseISODate(endDate).getUTCFullYear();
+  const start = sameYear ? formatShortDate(startDate) : formatDisplayDate(startDate);
+  const end = sameYear ? formatShortDate(endDate) : formatDisplayDate(endDate);
+  return `${start} – ${end}`;
+}

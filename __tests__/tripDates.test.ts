@@ -1,4 +1,12 @@
-import { computeDurationDays, daysUntil, parseISODate, shiftYear, toISODateString } from '../src/utils/tripDates';
+import {
+  computeDurationDays,
+  daysUntil,
+  formatDateRange,
+  formatDisplayDate,
+  parseISODate,
+  shiftYear,
+  toISODateString,
+} from '../src/utils/tripDates';
 
 describe('toISODateString', () => {
   it('formats a UTC date as YYYY-MM-DD', () => {
@@ -49,5 +57,25 @@ describe('shiftYear', () => {
 
   it('shifts a leap-day date back one year to Feb 28', () => {
     expect(shiftYear('2028-02-29', -1)).toBe('2027-03-01');
+  });
+});
+
+describe('formatDisplayDate', () => {
+  it('formats a date as "Mon D, YYYY"', () => {
+    expect(formatDisplayDate('2026-08-06')).toBe('Aug 6, 2026');
+  });
+});
+
+describe('formatDateRange', () => {
+  it('formats a same-year range without repeating the year, using an en dash', () => {
+    expect(formatDateRange('2026-08-06', '2026-08-15')).toBe('Aug 6 – Aug 15');
+  });
+
+  it('formats a range spanning two years with both years shown', () => {
+    expect(formatDateRange('2026-12-28', '2027-01-03')).toBe('Dec 28, 2026 – Jan 3, 2027');
+  });
+
+  it('formats a same-day trip as a single date', () => {
+    expect(formatDateRange('2026-08-06', '2026-08-06')).toBe('Aug 6, 2026');
   });
 });

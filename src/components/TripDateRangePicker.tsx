@@ -3,7 +3,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
-import { parseISODate, toISODateString } from '../utils/tripDates';
+import { formatDisplayDate, parseISODate, toISODateString } from '../utils/tripDates';
 
 interface TripDateRangePickerProps {
   startDate: string;
@@ -12,10 +12,6 @@ interface TripDateRangePickerProps {
 }
 
 type ActivePicker = 'start' | 'end' | null;
-
-function formatDisplayDate(iso: string): string {
-  return parseISODate(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-}
 
 export function TripDateRangePicker({ startDate, endDate, onChange }: TripDateRangePickerProps) {
   const theme = useTheme();

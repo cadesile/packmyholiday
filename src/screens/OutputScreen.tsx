@@ -104,6 +104,9 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
 
       <TripSummaryCard
         destination={draftConfig.destination}
+        climate={draftConfig.climate}
+        startDate={draftConfig.startDate}
+        endDate={draftConfig.endDate}
         durationDays={draftConfig.durationDays}
         travelerCount={travelers.length}
         totalItems={totalItemCount}
