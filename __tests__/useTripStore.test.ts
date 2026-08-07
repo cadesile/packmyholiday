@@ -12,6 +12,7 @@ jest.mock('../src/services/weather/factory', () => ({
 
 import { useTripStore } from '../src/state/useTripStore';
 import type { LocationResult } from '../src/services/weather/types';
+import type { SavedTrip } from '../src/state/storage';
 import type { PackingItem, PackingPlan } from '../src/types/packing';
 
 function makeItem(overrides: Partial<PackingItem> = {}): PackingItem {
@@ -33,6 +34,17 @@ function makePlan(items: PackingItem[]): PackingPlan {
     maxAllowedWeightKg: 23,
     isOverWeight: false,
     optimizationSuggestions: [],
+  };
+}
+
+function makeSavedTrip(overrides: Partial<SavedTrip> = {}): SavedTrip {
+  return {
+    id: 'trip-1',
+    name: 'Existing Trip',
+    config: useTripStore.getState().draftConfig,
+    plan: makePlan([makeItem()]),
+    savedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
   };
 }
 
@@ -289,5 +301,90 @@ describe('setItemQuantity', () => {
     useTripStore.setState({ currentPlan: null });
     expect(() => useTripStore.getState().setItemQuantity('a', 5)).not.toThrow();
     expect(useTripStore.getState().currentPlan).toBeNull();
+  });
+});
+
+describe('loadTrip', () => {
+  it('copies config and plan into draftConfig/currentPlan and sets loadedTripId', () => {
+    const trip = makeSavedTrip({ id: 'trip-1', config: { ...useTripStore.getState().draftConfig, destination: 'Krakow' } });
+    useTripStore.setState({ savedTrips: [trip] });
+
+    useTripStore.getState().loadTrip('trip-1');
+
+    const state = useTripStore.getState();
+    expect(state.draftConfig).toEqual(trip.config);
+    expect(state.currentPlan).toEqual(trip.plan);
+    expect(state.loadedTripId).toBe('trip-1');
+  });
+
+  it('is a no-op when the id does not exist', () => {
+    const before = useTripStore.getState();
+    useTripStore.getState().loadTrip('missing');
+    const after = useTripStore.getState();
+    expect(after.loadedTripId).toBeNull();
+    expect(after.draftConfig).toBe(before.draftConfig);
+    expect(after.currentPlan).toBe(before.currentPlan);
+  });
+});
+
+describe('resetWizard', () => {
+  it('clears loadedTripId back to null', () => {
+    useTripStore.setState({ loadedTripId: 'trip-1' });
+    useTripStore.getState().resetWizard();
+    expect(useTripStore.getState().loadedTripId).toBeNull();
+  });
+});
+
+describe('saveTrip', () => {
+  it('creates a new trip and sets loadedTripId to the new id when nothing is loaded', async () => {
+    useTripStore.setState({ currentPlan: makePlan([makeItem()]), loadedTripId: null, savedTrips: [] });
+
+    await useTripStore.getState().saveTrip('My Trip');
+
+    const { savedTrips, loadedTripId } = useTripStore.getState();
+    expect(savedTrips).toHaveLength(1);
+    expect(savedTrips[0].name).toBe('My Trip');
+    expect(loadedTripId).toBe(savedTrips[0].id);
+  });
+
+  it('updates the existing entry in place when loadedTripId matches a saved trip', async () => {
+    const original = makeSavedTrip({ id: 'trip-1', name: 'Old Name' });
+    const newPlan = makePlan([makeItem({ id: 'a', quantity: 3 })]);
+    useTripStore.setState({
+      savedTrips: [original],
+      loadedTripId: 'trip-1',
+      currentPlan: newPlan,
+      draftConfig: original.config,
+    });
+
+    await useTripStore.getState().saveTrip('Old Name');
+
+    const { savedTrips, loadedTripId } = useTripStore.getState();
+    expect(savedTrips).toHaveLength(1);
+    expect(savedTrips[0].id).toBe('trip-1');
+    expect(savedTrips[0].plan).toEqual(newPlan);
+    expect(savedTrips[0].savedAt).not.toBe(original.savedAt);
+    expect(loadedTripId).toBe('trip-1');
+  });
+
+  it('falls back to creating a new trip when loadedTripId no longer exists in savedTrips', async () => {
+    useTripStore.setState({
+      savedTrips: [],
+      loadedTripId: 'deleted-trip',
+      currentPlan: makePlan([makeItem()]),
+    });
+
+    await useTripStore.getState().saveTrip('Recovered Trip');
+
+    const { savedTrips, loadedTripId } = useTripStore.getState();
+    expect(savedTrips).toHaveLength(1);
+    expect(savedTrips[0].id).not.toBe('deleted-trip');
+    expect(loadedTripId).toBe(savedTrips[0].id);
+  });
+
+  it('does nothing when there is no current plan', async () => {
+    useTripStore.setState({ currentPlan: null, savedTrips: [] });
+    await useTripStore.getState().saveTrip('x');
+    expect(useTripStore.getState().savedTrips).toHaveLength(0);
   });
 });

@@ -7,6 +7,7 @@ import { SelectableChip } from '../components/SelectableChip';
 import { TripSummaryCard } from '../components/TripSummaryCard';
 import { useTripStore } from '../state/useTripStore';
 import { buildTravelerLabels } from '../utils/travelerLabel';
+import { hasTripChanged } from '../utils/tripDiff';
 import { HIT_SLOP_MIN } from '../theme/touchTargets';
 import { CATEGORY_COLORS } from '../theme/paperTheme';
 import type { PackingItem } from '../types/packing';
@@ -35,11 +36,23 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
   const removeItem = useTripStore((s) => s.removeItem);
   const setItemQuantity = useTripStore((s) => s.setItemQuantity);
   const saveTrip = useTripStore((s) => s.saveTrip);
+  const loadedTripId = useTripStore((s) => s.loadedTripId);
+  const savedTrips = useTripStore((s) => s.savedTrips);
   const [category, setCategory] = useState<PackingItem['category']>('clothing');
   const [tripName, setTripName] = useState('');
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
 
   const travelerLabels = useMemo(() => buildTravelerLabels(travelers), [travelers]);
+
+  const loadedTrip = useMemo(
+    () => (loadedTripId ? savedTrips.find((t) => t.id === loadedTripId) ?? null : null),
+    [loadedTripId, savedTrips]
+  );
+  const displayName = loadedTrip ? loadedTrip.name : tripName;
+  const isDirty = useMemo(
+    () => hasTripChanged(loadedTrip, draftConfig, currentPlan),
+    [loadedTrip, draftConfig, currentPlan]
+  );
 
   const filteredItems = useMemo(
     () => (currentPlan ? currentPlan.items.filter((item) => item.category === category) : []),
@@ -166,16 +179,17 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
       <View style={styles.saveRow}>
         <TextInput
           label="Trip name"
-          value={tripName}
-          onChangeText={setTripName}
+          value={displayName}
+          onChangeText={loadedTrip ? undefined : setTripName}
+          disabled={!!loadedTrip}
           mode="outlined"
           style={styles.saveInput}
         />
         <Button
           mode="contained"
-          disabled={!tripName.trim()}
+          disabled={loadedTrip ? !isDirty : !displayName.trim()}
           onPress={async () => {
-            await saveTrip(tripName.trim());
+            await saveTrip(displayName.trim());
             setTripName('');
           }}
         >

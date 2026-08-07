@@ -61,6 +61,7 @@ interface TripStoreState {
   draftConfig: TripConfig;
   currentPlan: PackingPlan | null;
   savedTrips: SavedTrip[];
+  loadedTripId: string | null;
   hydrated: boolean;
   weatherLookupError: string | null;
 
@@ -91,6 +92,7 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
   draftConfig: defaultDraftConfig(),
   currentPlan: null,
   savedTrips: [],
+  loadedTripId: null,
   hydrated: false,
   weatherLookupError: null,
 
@@ -245,24 +247,44 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
   },
 
   saveTrip: async (name) => {
-    const { draftConfig, currentPlan, savedTrips } = get();
+    const { draftConfig, currentPlan, savedTrips, loadedTripId } = get();
     if (!currentPlan) return;
-    const trip: SavedTrip = {
-      id: defaultIdGenerator(),
-      name,
-      config: draftConfig,
-      plan: currentPlan,
-      savedAt: new Date().toISOString(),
-    };
-    const nextSavedTrips = [...savedTrips, trip];
-    set({ savedTrips: nextSavedTrips });
+
+    const existingIndex = loadedTripId ? savedTrips.findIndex((t) => t.id === loadedTripId) : -1;
+
+    let nextSavedTrips: SavedTrip[];
+    let savedTripId: string;
+
+    if (existingIndex !== -1) {
+      const updated: SavedTrip = {
+        ...savedTrips[existingIndex],
+        name,
+        config: draftConfig,
+        plan: currentPlan,
+        savedAt: new Date().toISOString(),
+      };
+      nextSavedTrips = [...savedTrips.slice(0, existingIndex), updated, ...savedTrips.slice(existingIndex + 1)];
+      savedTripId = updated.id;
+    } else {
+      const trip: SavedTrip = {
+        id: defaultIdGenerator(),
+        name,
+        config: draftConfig,
+        plan: currentPlan,
+        savedAt: new Date().toISOString(),
+      };
+      nextSavedTrips = [...savedTrips, trip];
+      savedTripId = trip.id;
+    }
+
+    set({ savedTrips: nextSavedTrips, loadedTripId: savedTripId });
     await persistSavedTrips(nextSavedTrips);
   },
 
   loadTrip: (id) => {
     const trip = get().savedTrips.find((t) => t.id === id);
     if (!trip) return;
-    set({ draftConfig: trip.config, currentPlan: trip.plan });
+    set({ draftConfig: trip.config, currentPlan: trip.plan, loadedTripId: trip.id });
   },
 
   deleteTrip: async (id) => {
@@ -272,6 +294,12 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
   },
 
   resetWizard: () => {
-    set({ wizardStep: MIN_WIZARD_STEP, draftConfig: defaultDraftConfig(), currentPlan: null, weatherLookupError: null });
+    set({
+      wizardStep: MIN_WIZARD_STEP,
+      draftConfig: defaultDraftConfig(),
+      currentPlan: null,
+      weatherLookupError: null,
+      loadedTripId: null,
+    });
   },
 }));
