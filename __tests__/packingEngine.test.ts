@@ -21,6 +21,7 @@ function makeConfig(overrides: Partial<TripConfig> = {}): TripConfig {
     checkedBags: 2,
     cabinBags: 1,
     laundryAvailable: false,
+    reuseClothing: false,
     toiletryStrategy: 'pack',
     activities: [] as ActivityType[],
     ...overrides,
@@ -55,6 +56,38 @@ describe('generatePackingPlan — baseline clothing formulas', () => {
     const config = makeConfig({ durationDays: 14, laundryAvailable: false });
     const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
     expect(itemsFor(plan.items, 'T-Shirt / Top')[0].quantity).toBe(15);
+  });
+});
+
+describe('generatePackingPlan — reuseClothing', () => {
+  it('reduces day-scaled clothing quantities by the reuse factor for an 8-night trip', () => {
+    const config = makeConfig({ durationDays: 8, laundryAvailable: false, reuseClothing: true });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+    // 8 * 0.7 = 5.6 -> ceil 6; t-shirts = 6 + 1 = 7 (down from 9 without reuse)
+    expect(itemsFor(plan.items, 'T-Shirt / Top')[0].quantity).toBe(7);
+  });
+
+  it('does not change quantities when reuseClothing is off', () => {
+    const config = makeConfig({ durationDays: 8, laundryAvailable: false, reuseClothing: false });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+    expect(itemsFor(plan.items, 'T-Shirt / Top')[0].quantity).toBe(9);
+  });
+
+  it('works independently of laundryAvailable, combining when both are on', () => {
+    // laundry caps effectiveDays to 5, then reuse factor applies on top: ceil(5 * 0.7) = 4 -> 4 + 1 = 5
+    const config = makeConfig({ durationDays: 14, laundryAvailable: true, reuseClothing: true });
+    const plan = generatePackingPlan(config, { idGenerator: makeStubIdGen() });
+    expect(itemsFor(plan.items, 'T-Shirt / Top')[0].quantity).toBe(5);
+  });
+
+  it('does not affect non-clothing, day-scaled items like toothpaste', () => {
+    const withReuse = generatePackingPlan(makeConfig({ durationDays: 8, reuseClothing: true }), {
+      idGenerator: makeStubIdGen(),
+    });
+    const withoutReuse = generatePackingPlan(makeConfig({ durationDays: 8, reuseClothing: false }), {
+      idGenerator: makeStubIdGen(),
+    });
+    expect(itemsFor(withReuse.items, 'Toothpaste')[0].quantity).toBe(itemsFor(withoutReuse.items, 'Toothpaste')[0].quantity);
   });
 });
 

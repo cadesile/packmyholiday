@@ -34,6 +34,7 @@ export interface TripConfig {
   checkedBags: number; // ~23kg capacity each
   cabinBags: number; // ~10kg capacity each
   laundryAvailable: boolean;
+  reuseClothing: boolean;
   toiletryStrategy: ToiletryStrategy;
   activities: ActivityType[];
 }

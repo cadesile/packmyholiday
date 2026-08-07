@@ -33,6 +33,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
   const toggleItemPacked = useTripStore((s) => s.toggleItemPacked);
   const toggleItemExcluded = useTripStore((s) => s.toggleItemExcluded);
   const removeItem = useTripStore((s) => s.removeItem);
+  const setItemQuantity = useTripStore((s) => s.setItemQuantity);
   const saveTrip = useTripStore((s) => s.saveTrip);
   const [category, setCategory] = useState<PackingItem['category']>('clothing');
   const [tripName, setTripName] = useState('');
@@ -144,6 +145,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
             onToggle={toggleItemPacked}
             onToggleExcluded={toggleItemExcluded}
             onRemove={removeItem}
+            onQuantityChange={setItemQuantity}
           />
         )}
         renderSectionHeader={({ section }) => (

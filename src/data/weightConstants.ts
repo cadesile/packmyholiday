@@ -4,6 +4,7 @@ export const CHECKED_BAG_CAPACITY_KG = 23;
 export const CABIN_BAG_CAPACITY_KG = 10;
 
 export const LAUNDRY_EFFECTIVE_DAYS_CAP = 5;
+export const CLOTHING_REUSE_FACTOR = 0.7;
 
 export const DEMOGRAPHIC_WEIGHT_MULTIPLIER: Record<AgeGroup, number> = {
   adult: 1.0,

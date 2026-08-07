@@ -8,6 +8,7 @@ import {
   CABIN_BAG_CAPACITY_KG,
   CHECKED_BAG_CAPACITY_KG,
   CHILD_SHOE_WEIGHT_GRAMS,
+  CLOTHING_REUSE_FACTOR,
   FOOTWEAR_BASELINE_PAIRS,
   FOOTWEAR_HARD_CAP,
   FOOTWEAR_PRIORITY,
@@ -113,16 +114,18 @@ export function generatePackingPlan(config: TripConfig, deps: GeneratePackingPla
 
   const durationDays = Math.max(1, config.durationDays || 1);
   const effectiveDays = config.laundryAvailable ? Math.min(durationDays, LAUNDRY_EFFECTIVE_DAYS_CAP) : durationDays;
+  const clothingEffectiveDays = config.reuseClothing ? Math.ceil(effectiveDays * CLOTHING_REUSE_FACTOR) : effectiveDays;
 
   const items: PackingItem[] = [];
   const footwear = resolveFootwear(config.activities);
 
   for (const traveler of travelers) {
-    const ctx: EngineContext = { config, traveler, effectiveDays };
     const multiplier = demographicMultiplier(traveler.ageGroup);
 
     for (const entry of catalog) {
       if (!entry.perTraveler) continue;
+      const entryEffectiveDays = entry.category === 'clothing' ? clothingEffectiveDays : effectiveDays;
+      const ctx: EngineContext = { config, traveler, effectiveDays: entryEffectiveDays };
       if (entry.appliesWhen && !entry.appliesWhen(ctx)) continue;
       const quantity = roundQty(entry.quantityFormula(ctx));
       if (quantity <= 0) continue;

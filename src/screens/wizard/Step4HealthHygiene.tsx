@@ -36,6 +36,17 @@ export function Step4HealthHygiene() {
         />
       </View>
 
+      <View style={styles.switchRow}>
+        <View style={styles.switchLabelGroup}>
+          <Text variant="titleMedium">Reuse Some Clothing</Text>
+          <Text variant="bodySmall">Pack fewer clothes, assuming some items get worn more than once</Text>
+        </View>
+        <Switch
+          value={draftConfig.reuseClothing}
+          onValueChange={(value) => updateDraftConfig({ reuseClothing: value })}
+        />
+      </View>
+
       <Text variant="titleMedium">Health Advisory</Text>
       <List.Item
         title="Insect repellent"
@@ -61,5 +72,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  switchLabelGroup: {
+    flex: 1,
+    marginRight: 12,
+    gap: 2,
   },
 });

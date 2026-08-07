@@ -248,3 +248,46 @@ describe('removeItem', () => {
     expect(useTripStore.getState().currentPlan).toBeNull();
   });
 });
+
+describe('setItemQuantity', () => {
+  it('updates the item quantity and recomputes weight', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([makeItem({ id: 'a', estimatedWeightGrams: 200, quantity: 3 })]),
+    });
+
+    useTripStore.getState().setItemQuantity('a', 5);
+
+    const { currentPlan } = useTripStore.getState();
+    expect(currentPlan?.items[0].quantity).toBe(5);
+    expect(currentPlan?.totalEstimatedWeightKg).toBe(1); // 200g * 5 = 1000g -> 1kg
+  });
+
+  it('clamps to a minimum of 1', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([makeItem({ id: 'a', quantity: 1 })]),
+    });
+
+    useTripStore.getState().setItemQuantity('a', 0);
+
+    expect(useTripStore.getState().currentPlan?.items[0].quantity).toBe(1);
+  });
+
+  it('ignores excluded items when recomputing weight', () => {
+    useTripStore.setState({
+      currentPlan: makePlan([
+        makeItem({ id: 'a', estimatedWeightGrams: 200, quantity: 1, excluded: true }),
+        makeItem({ id: 'b', estimatedWeightGrams: 100, quantity: 1 }),
+      ]),
+    });
+
+    useTripStore.getState().setItemQuantity('a', 10);
+
+    expect(useTripStore.getState().currentPlan?.totalEstimatedWeightKg).toBe(0.1); // only 'b' counts
+  });
+
+  it('does nothing when there is no current plan', () => {
+    useTripStore.setState({ currentPlan: null });
+    expect(() => useTripStore.getState().setItemQuantity('a', 5)).not.toThrow();
+    expect(useTripStore.getState().currentPlan).toBeNull();
+  });
+});

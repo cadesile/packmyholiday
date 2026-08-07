@@ -10,9 +10,10 @@ interface PackingItemRowProps {
   onToggle: (itemId: string) => void;
   onToggleExcluded: (itemId: string) => void;
   onRemove: (itemId: string) => void;
+  onQuantityChange: (itemId: string, quantity: number) => void;
 }
 
-export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove }: PackingItemRowProps) {
+export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQuantityChange }: PackingItemRowProps) {
   const theme = useTheme();
   const totalWeightKg = (item.estimatedWeightGrams * item.quantity) / 1000;
 
@@ -33,16 +34,34 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove }: P
           ]}
         >
           {item.name}
-          {item.quantity > 1 ? (
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              {' '}
-              x{item.quantity}
+        </Text>
+        <View style={styles.metaRow}>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+            {totalWeightKg.toFixed(2)}kg
+          </Text>
+          <View style={styles.stepper}>
+            <IconButton
+              icon="minus"
+              size={14}
+              disabled={item.quantity <= 1}
+              hitSlop={HIT_SLOP_MIN}
+              accessibilityLabel="Decrease quantity"
+              style={styles.stepperButton}
+              onPress={() => onQuantityChange(item.id, item.quantity - 1)}
+            />
+            <Text variant="bodySmall" style={styles.stepperValue}>
+              {item.quantity}
             </Text>
-          ) : null}
-        </Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-          {totalWeightKg.toFixed(2)}kg
-        </Text>
+            <IconButton
+              icon="plus"
+              size={14}
+              hitSlop={HIT_SLOP_MIN}
+              accessibilityLabel="Increase quantity"
+              style={styles.stepperButton}
+              onPress={() => onQuantityChange(item.id, item.quantity + 1)}
+            />
+          </View>
+        </View>
       </View>
       <IconButton
         icon={item.excluded ? 'eye-outline' : 'eye-off-outline'}
@@ -76,5 +95,21 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: INTER_FAMILY.medium,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stepperButton: {
+    margin: 0,
+  },
+  stepperValue: {
+    minWidth: 18,
+    textAlign: 'center',
   },
 });

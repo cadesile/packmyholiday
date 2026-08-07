@@ -43,6 +43,7 @@ function defaultDraftConfig(): TripConfig {
     checkedBags: 1,
     cabinBags: 1,
     laundryAvailable: false,
+    reuseClothing: false,
     toiletryStrategy: 'pack',
     activities: [],
   };
@@ -78,6 +79,7 @@ interface TripStoreState {
   toggleItemPacked: (itemId: string) => void;
   toggleItemExcluded: (itemId: string) => void;
   removeItem: (itemId: string) => void;
+  setItemQuantity: (itemId: string, quantity: number) => void;
   saveTrip: (name: string) => Promise<void>;
   loadTrip: (id: string) => void;
   deleteTrip: (id: string) => Promise<void>;
@@ -211,6 +213,25 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
     set((state) => {
       if (!state.currentPlan) return state;
       const items = state.currentPlan.items.filter((item) => item.id !== itemId);
+      const totalEstimatedWeightKg = sumWeightKg(items.filter((item) => !item.excluded));
+      return {
+        currentPlan: {
+          ...state.currentPlan,
+          items,
+          totalEstimatedWeightKg,
+          isOverWeight: totalEstimatedWeightKg > state.currentPlan.maxAllowedWeightKg,
+        },
+      };
+    });
+  },
+
+  setItemQuantity: (itemId, quantity) => {
+    set((state) => {
+      if (!state.currentPlan) return state;
+      const clampedQuantity = Math.max(1, quantity);
+      const items = state.currentPlan.items.map((item) =>
+        item.id === itemId ? { ...item, quantity: clampedQuantity } : item
+      );
       const totalEstimatedWeightKg = sumWeightKg(items.filter((item) => !item.excluded));
       return {
         currentPlan: {
