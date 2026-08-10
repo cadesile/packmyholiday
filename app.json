@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "packmyholiday-app",
-    "slug": "packmyholiday-app",
+    "slug": "packmyhoilday",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,6 +24,12 @@
     "plugins": [
       "expo-font",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "59ed0d47-1b32-4bc1-84b7-2d9f08fe1563"
+      }
+    },
+    "owner": "courtney.adesile"
   }
 }

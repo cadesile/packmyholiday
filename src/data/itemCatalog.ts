@@ -293,6 +293,34 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
     perTraveler: true,
     quantityFormula: () => 1,
   },
+
+  // --- Makeup & Beauty (Feminine travelers + Formal/Nightlife) ---
+  {
+    id: 'makeup_cosmetics_kit',
+    name: 'Makeup & Cosmetics Pouch',
+    category: 'toiletries',
+    iconName: 'palette-swatch-outline',
+    baseWeightGrams: 250,
+    perTraveler: true,
+    appliesWhen: (ctx) =>
+      ctx.traveler?.style === 'feminine' &&
+      (hasActivity(ctx, 'formal') || hasActivity(ctx, 'nightlife')) &&
+      isPacking(ctx),
+    quantityFormula: () => 1,
+  },
+  {
+    id: 'makeup_remover_cleanser',
+    name: 'Makeup Remover / Cleanser',
+    category: 'toiletries',
+    iconName: 'spray-bottle',
+    baseWeightGrams: 120,
+    perTraveler: true,
+    appliesWhen: (ctx) =>
+      ctx.traveler?.style === 'feminine' &&
+      (hasActivity(ctx, 'formal') || hasActivity(ctx, 'nightlife')) &&
+      isPacking(ctx),
+    quantityFormula: () => 1,
+  },
 ];
 
 export interface FootwearItemSpec {
