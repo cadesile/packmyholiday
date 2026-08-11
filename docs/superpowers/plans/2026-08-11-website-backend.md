@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- This is a **new repo**, created at `/Users/courtneyadesile/Documents/Projects/packmyholiday-backend` (sibling to the `packmyholiday` mobile app repo), not a folder inside `packmyholiday`.
+- This plan runs inside an **already-created, empty git repo** named `packmyholiday-backend` (sibling to the `packmyholiday` mobile app repo) — the repo directory and `git init` are done before this plan starts. Operate from that repo's root (wherever the session was started); do not create or `cd` into a new directory.
 - `PackingItem.type` values: `luggage | clothing | toiletries | electronics | footwear | essentials` (mirrors `PackingItem['category']` in the mobile app's `src/types/packing.ts`).
 - `PackingItem.climate` values: `warm | cold | temperate | any`.
 - Admin auth is HTTP Basic only — no login form, no session, single shared credential pair from `ADMIN_USER` / `ADMIN_PASSWORD_HASH` env vars. Never hardcode credentials in code.
@@ -25,28 +25,25 @@
 
 ---
 
-### Task 1: Scaffold the Symfony project, Lando, and git repo
+### Task 1: Scaffold the Symfony project and Lando
 
 **Files:**
-- Create: `/Users/courtneyadesile/Documents/Projects/packmyholiday-backend/` (new Symfony project, via `symfony new`)
+- Create: Symfony project skeleton in the current repo root (via `symfony new .`)
 - Create: `.lando.yml`
 - Create: `.gitignore` (Symfony default + `.env.local`)
 - Create: `README.md`
 
 **Interfaces:**
-- Consumes: nothing (first task).
-- Produces: a bootable Symfony skeleton at the new repo path with Doctrine, Twig, Mailer, and AssetMapper installed; a working Lando environment other tasks assume exists. Later tasks assume `lando start` gives a running app + Postgres.
+- Consumes: nothing (first task). Assumes the working directory is already an initialized, empty git repo named `packmyholiday-backend`.
+- Produces: a bootable Symfony skeleton in the repo root with Doctrine, Twig, Mailer, and AssetMapper installed; a working Lando environment other tasks assume exists. Later tasks assume `lando start` gives a running app + Postgres.
 
-- [ ] **Step 1: Create the new repo directory and scaffold Symfony**
+- [ ] **Step 1: Scaffold Symfony into the current (already-created) repo**
 
 ```bash
-mkdir -p /Users/courtneyadesile/Documents/Projects/packmyholiday-backend
-cd /Users/courtneyadesile/Documents/Projects/packmyholiday-backend
 symfony new . --version=7.1 --webapp
-git init
 ```
 
-`--webapp` pulls in Twig, forms, mailer, validator — all needed here.
+Run this from the repo root — do not create a new directory or `cd` elsewhere first. `--webapp` pulls in Twig, forms, mailer, validator — all needed here.
 
 - [ ] **Step 2: Add Doctrine (ORM + migrations + Postgres driver) and AssetMapper/Stimulus**
 
