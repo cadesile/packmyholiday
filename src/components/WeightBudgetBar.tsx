@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ProgressBar, Text, useTheme } from 'react-native-paper';
-import { FRAUNCES_FAMILY } from '../theme/fonts';
+import { Icon, Text, useTheme } from 'react-native-paper';
 
 interface WeightBudgetBarProps {
   totalEstimatedWeightKg: number;
@@ -12,24 +11,34 @@ interface WeightBudgetBarProps {
 export function WeightBudgetBar({ totalEstimatedWeightKg, maxAllowedWeightKg, isOverWeight }: WeightBudgetBarProps) {
   const theme = useTheme();
   const progress = maxAllowedWeightKg > 0 ? Math.min(1, totalEstimatedWeightKg / maxAllowedWeightKg) : 0;
+  const fill = isOverWeight ? theme.colors.error : theme.colors.primary;
 
   return (
     <View style={styles.container}>
-      <Text variant="titleLarge" style={styles.weightText}>
-        {totalEstimatedWeightKg.toFixed(1)}kg
-        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-          {' '}/ {maxAllowedWeightKg.toFixed(1)}kg budget
+      <View style={styles.figures}>
+        <Text variant="titleLarge" style={{ color: isOverWeight ? theme.colors.error : theme.colors.onSurface }}>
+          {totalEstimatedWeightKg.toFixed(1)}kg
         </Text>
-      </Text>
-      <ProgressBar
-        progress={progress}
-        color={isOverWeight ? theme.colors.error : theme.colors.primary}
-        style={styles.bar}
-      />
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          of {maxAllowedWeightKg.toFixed(1)}kg budget
+        </Text>
+      </View>
+      <View
+        style={[styles.track, { backgroundColor: theme.colors.surfaceVariant }]}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel="Weight budget used"
+        accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
+      >
+        <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: fill }]} />
+      </View>
       {isOverWeight ? (
-        <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
-          Over weight budget — see suggestions below.
-        </Text>
+        <View style={styles.warning}>
+          <Icon source="alert-circle-outline" size={18} color={theme.colors.error} />
+          <Text variant="bodySmall" style={{ color: theme.colors.error }}>
+            Over weight budget. See suggestions.
+          </Text>
+        </View>
       ) : null}
     </View>
   );
@@ -37,14 +46,25 @@ export function WeightBudgetBar({ totalEstimatedWeightKg, maxAllowedWeightKg, is
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
-    paddingVertical: 8,
+    gap: 8,
   },
-  bar: {
-    height: 8,
-    borderRadius: 4,
+  figures: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
-  weightText: {
-    fontFamily: FRAUNCES_FAMILY.bold,
+  track: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  warning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
-import { FRAUNCES_FAMILY } from '../theme/fonts';
+import { RADII } from '../theme/radii';
 import { CLIMATE_CARD_COLORS, CLIMATE_CARD_ICONS } from '../theme/paperTheme';
 import { formatDateRange } from '../utils/tripDates';
 import type { ClimateType } from '../types/packing';
@@ -17,6 +17,11 @@ interface TripSummaryCardProps {
   packedItems: number;
 }
 
+// Text on the card is always white: every CLIMATE_CARD_COLORS entry passes 4.5:1 under it.
+const ON_CARD = '#FFFFFF';
+const ON_CARD_MUTED = 'rgba(255,255,255,0.92)';
+const DIVIDER = 'rgba(255,255,255,0.25)';
+
 export function TripSummaryCard({
   destination,
   climate,
@@ -28,91 +33,75 @@ export function TripSummaryCard({
   packedItems,
 }: TripSummaryCardProps) {
   const toPack = totalItems - packedItems;
-  const cardColor = CLIMATE_CARD_COLORS[climate];
-  const onCardColor = '#FFFFFF';
 
   return (
-    <View style={[styles.card, { backgroundColor: cardColor }]}>
-      <View style={styles.weatherIcon}>
+    <View style={[styles.card, { backgroundColor: CLIMATE_CARD_COLORS[climate] }]}>
+      <View style={styles.weatherIcon} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         <Icon source={CLIMATE_CARD_ICONS[climate]} size={72} color="rgba(255,255,255,0.22)" />
       </View>
 
-      <Text variant="titleLarge" style={[styles.destination, { color: onCardColor }]}>
-        {destination || 'Your Trip'}
-      </Text>
-      <Text variant="bodyMedium" style={[styles.subtitle, { color: onCardColor }]}>
-        {formatDateRange(startDate, endDate)}
-      </Text>
-      <Text variant="bodyMedium" style={[styles.subtitle, { color: onCardColor }]}>
-        {durationDays} night{durationDays === 1 ? '' : 's'} · {travelerCount} traveler{travelerCount === 1 ? '' : 's'}
-      </Text>
+      <View style={styles.heading}>
+        <Text variant="headlineSmall" style={{ color: ON_CARD }}>
+          {destination || 'Your Trip'}
+        </Text>
+        <Text variant="bodySmall" style={{ color: ON_CARD_MUTED }}>
+          {formatDateRange(startDate, endDate)} · {durationDays} night{durationDays === 1 ? '' : 's'} · {travelerCount}{' '}
+          traveler{travelerCount === 1 ? '' : 's'}
+        </Text>
+      </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text variant="headlineSmall" style={[styles.statValue, { color: onCardColor }]}>
-            {totalItems}
-          </Text>
-          <Text variant="bodySmall" style={{ color: onCardColor, opacity: 0.75 }}>
-            Total items
-          </Text>
-        </View>
+        <Stat value={totalItems} label="Total items" />
         <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text variant="headlineSmall" style={[styles.statValue, { color: onCardColor }]}>
-            {packedItems}
-          </Text>
-          <Text variant="bodySmall" style={{ color: onCardColor, opacity: 0.75 }}>
-            Packed
-          </Text>
-        </View>
+        <Stat value={packedItems} label="Packed" />
         <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text variant="headlineSmall" style={[styles.statValue, { color: onCardColor }]}>
-            {toPack}
-          </Text>
-          <Text variant="bodySmall" style={{ color: onCardColor, opacity: 0.75 }}>
-            To pack
-          </Text>
-        </View>
+        <Stat value={toPack} label="To pack" />
       </View>
+    </View>
+  );
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <View style={styles.stat} accessible accessibilityLabel={`${value} ${label.toLowerCase()}`}>
+      <Text variant="headlineMedium" style={{ color: ON_CARD }}>
+        {value}
+      </Text>
+      <Text variant="labelSmall" style={{ color: ON_CARD_MUTED, fontSize: 13 }}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    padding: 16,
-    gap: 4,
+    borderRadius: RADII.hero,
+    padding: 18,
+    gap: 14,
     overflow: 'hidden',
   },
   weatherIcon: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 14,
+    right: 14,
   },
-  destination: {
-    fontFamily: FRAUNCES_FAMILY.bold,
-    paddingRight: 64,
-  },
-  subtitle: {
-    opacity: 0.85,
+  heading: {
+    gap: 2,
+    paddingRight: 72,
   },
   statsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: DIVIDER,
+    paddingTop: 12,
   },
   stat: {
     flex: 1,
     alignItems: 'center',
   },
-  statValue: {
-    fontFamily: FRAUNCES_FAMILY.bold,
-  },
   statDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 32,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    width: 1,
+    backgroundColor: DIVIDER,
   },
 });

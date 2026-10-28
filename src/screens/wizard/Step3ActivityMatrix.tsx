@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { WizardStepLayout } from '../../components/WizardStepLayout';
 import { ActivityChipGrid } from '../../components/ActivityChipGrid';
 import { useTripStore } from '../../state/useTripStore';
@@ -10,6 +10,7 @@ export function Step3ActivityMatrix() {
   const updateDraftConfig = useTripStore((s) => s.updateDraftConfig);
   const nextStep = useTripStore((s) => s.nextStep);
   const prevStep = useTripStore((s) => s.prevStep);
+  const theme = useTheme();
 
   const toggleActivity = (activity: ActivityType) => {
     const activities = draftConfig.activities.includes(activity)
@@ -20,15 +21,16 @@ export function Step3ActivityMatrix() {
 
   return (
     <WizardStepLayout
-      title="Trip Style & Activities"
+      title="What will you get up to?"
+      stepName="Trip style"
       stepNumber={3}
       totalSteps={5}
       onBack={prevStep}
       onNext={nextStep}
-      stickerIcon="lightning-bolt"
-      stickerColor="sprout"
     >
-      <Text variant="bodyMedium">Select everything that applies — this shapes your packing list.</Text>
+      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: -12 }}>
+        Select everything that applies. This shapes your packing list.
+      </Text>
       <ActivityChipGrid selected={draftConfig.activities} onToggle={toggleActivity} />
     </WizardStepLayout>
   );

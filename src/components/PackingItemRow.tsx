@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
-import { GEIST_FAMILY } from '../theme/fonts';
-import { HIT_SLOP_MIN } from '../theme/touchTargets';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Icon, IconButton, Text, useTheme } from 'react-native-paper';
+import { INTER_FAMILY } from '../theme/fonts';
+import { HIT_SLOP_MIN, MIN_TOUCH } from '../theme/touchTargets';
 import type { PackingItem } from '../types/packing';
 
 interface PackingItemRowProps {
@@ -18,26 +18,41 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQ
   const totalWeightKg = (item.estimatedWeightGrams * item.quantity) / 1000;
 
   return (
-    <View style={[styles.row, item.excluded && styles.excludedRow]}>
-      <Checkbox.Android
-        status={item.packed ? 'checked' : 'unchecked'}
-        color={theme.colors.primary}
-        uncheckedColor={theme.colors.outline}
+    <View style={[styles.row, { borderBottomColor: theme.colors.outlineVariant }, item.excluded && styles.excludedRow]}>
+      {/* 24px box inside a 44px touch target */}
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityLabel={item.name}
+        accessibilityState={{ checked: item.packed }}
         onPress={() => onToggle(item.id)}
-      />
+        style={styles.checkTarget}
+      >
+        <View
+          style={[
+            styles.checkbox,
+            item.packed
+              ? { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+              : { borderColor: theme.colors.outline },
+          ]}
+        >
+          {item.packed ? <Icon source="check" size={16} color={theme.colors.onPrimary} /> : null}
+        </View>
+      </Pressable>
+
       <View style={styles.textGroup}>
         <Text
           variant="bodyLarge"
           style={[
             styles.name,
-            item.packed && { color: theme.colors.onSurfaceVariant, textDecorationLine: 'line-through' },
+            { color: item.packed ? theme.colors.onSurfaceVariant : theme.colors.onSurface },
+            item.packed && { textDecorationLine: 'line-through' },
           ]}
         >
           {item.name}
         </Text>
         <View style={styles.metaRow}>
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {totalWeightKg.toFixed(2)}kg
+            {item.excluded ? 'Excluded from budget' : `${totalWeightKg.toFixed(2)}kg`}
           </Text>
           <View style={styles.stepper}>
             <IconButton
@@ -50,7 +65,7 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQ
               onPress={() => onQuantityChange(item.id, item.quantity - 1)}
             />
             <Text variant="bodySmall" style={styles.stepperValue}>
-              {item.quantity}
+              ×{item.quantity}
             </Text>
             <IconButton
               icon="plus"
@@ -63,9 +78,11 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQ
           </View>
         </View>
       </View>
+
       <IconButton
-        icon={item.excluded ? 'eye-outline' : 'eye-off-outline'}
+        icon={item.excluded ? 'eye-off-outline' : 'eye-outline'}
         size={20}
+        iconColor={theme.colors.onSurfaceVariant}
         hitSlop={HIT_SLOP_MIN}
         accessibilityLabel={item.excluded ? 'Include item in weight budget' : 'Exclude item from weight budget'}
         onPress={() => onToggleExcluded(item.id)}
@@ -73,6 +90,7 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQ
       <IconButton
         icon="trash-can-outline"
         size={20}
+        iconColor={theme.colors.onSurfaceVariant}
         hitSlop={HIT_SLOP_MIN}
         accessibilityLabel="Remove item"
         onPress={() => onRemove(item.id)}
@@ -83,18 +101,34 @@ export function PackingItemRow({ item, onToggle, onToggleExcluded, onRemove, onQ
 
 const styles = StyleSheet.create({
   row: {
+    minHeight: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
+    borderBottomWidth: 1,
   },
   excludedRow: {
-    opacity: 0.5,
+    opacity: 0.55,
+  },
+  checkTarget: {
+    width: MIN_TOUCH,
+    height: MIN_TOUCH,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textGroup: {
     flex: 1,
+    gap: 2,
   },
   name: {
-    fontFamily: GEIST_FAMILY.medium,
+    fontFamily: INTER_FAMILY.medium,
   },
   metaRow: {
     flexDirection: 'row',
@@ -109,7 +143,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   stepperValue: {
-    minWidth: 18,
+    minWidth: 22,
     textAlign: 'center',
   },
 });

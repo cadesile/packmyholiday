@@ -1,58 +1,98 @@
 import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { FlatList, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Icon, IconButton, Text, useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppButton } from '../components/AppButton';
 import { useTripStore } from '../state/useTripStore';
+import { CLIMATE_CARD_COLORS, CLIMATE_CARD_ICONS } from '../theme/paperTheme';
+import { RADII } from '../theme/radii';
+import { SCREEN_GUTTER } from '../theme/spacing';
 import { HIT_SLOP_MIN } from '../theme/touchTargets';
-import { FRAUNCES_FAMILY } from '../theme/fonts';
 
 interface SavedTripsScreenProps {
   onOpenTrip: () => void;
   onBack: () => void;
 }
 
+const SAVED_DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+
 export function SavedTripsScreen({ onOpenTrip, onBack }: SavedTripsScreenProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const savedTrips = useTripStore((s) => s.savedTrips);
   const loadTrip = useTripStore((s) => s.loadTrip);
   const deleteTrip = useTripStore((s) => s.deleteTrip);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.secondary }]}>
-        <Text variant="headlineSmall" style={[styles.title, { color: theme.colors.onSecondary }]}>
-          Saved Trips
-        </Text>
-      </View>
       <FlatList
         data={savedTrips}
         keyExtractor={(trip) => trip.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Card style={styles.card} mode="contained" onPress={() => { loadTrip(item.id); onOpenTrip(); }}>
-            <Card.Content style={styles.cardContent}>
-              <View style={styles.cardText}>
-                <Text variant="titleMedium" style={{ fontFamily: FRAUNCES_FAMILY.semibold }}>
-                  {item.name}
-                </Text>
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text variant="displaySmall" accessibilityRole="header">
+              Saved trips
+            </Text>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+              {savedTrips.length} trip{savedTrips.length === 1 ? '' : 's'} on this device
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => {
+          const climate = item.config.climate;
+          return (
+            <View
+              style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}
+            >
+              <View style={[styles.badge, { backgroundColor: CLIMATE_CARD_COLORS[climate] }]}>
+                <Icon source={CLIMATE_CARD_ICONS[climate]} size={26} color="#FFFFFF" />
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${item.name}`}
+                style={styles.cardText}
+                onPress={() => {
+                  loadTrip(item.id);
+                  onOpenTrip();
+                }}
+              >
+                <Text variant="titleMedium">{item.name}</Text>
                 <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
                   {item.config.destination || 'Unknown destination'} · saved{' '}
-                  {new Date(item.savedAt).toLocaleDateString()}
+                  {new Date(item.savedAt).toLocaleDateString(undefined, SAVED_DATE_FORMAT)}
                 </Text>
-              </View>
+              </Pressable>
               <IconButton
-                icon="delete-outline"
+                icon="trash-can-outline"
+                iconColor={theme.colors.onSurfaceVariant}
                 hitSlop={HIT_SLOP_MIN}
                 accessibilityLabel={`Delete ${item.name}`}
                 onPress={() => deleteTrip(item.id)}
               />
-            </Card.Content>
-          </Card>
-        )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No saved trips yet.</Text>}
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          <Text variant="bodyMedium" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+            No saved trips yet.
+          </Text>
+        }
       />
-      <Button mode="text" onPress={onBack} style={styles.backButton}>
-        Back
-      </Button>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.outlineVariant,
+            paddingBottom: Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
+        <AppButton variant="secondary" iconLeft="chevron-left" onPress={onBack} style={styles.back}>
+          Back
+        </AppButton>
+      </View>
     </View>
   );
 }
@@ -61,38 +101,58 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  title: {
-    fontFamily: FRAUNCES_FAMILY.bold,
-  },
   listContent: {
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: SCREEN_GUTTER,
+    paddingTop: 16,
+    paddingBottom: 24,
+    gap: 14,
+  },
+  header: {
+    gap: 4,
+    marginBottom: 6,
   },
   card: {
-    borderRadius: 14,
-  },
-  cardContent: {
+    borderWidth: 1,
+    borderRadius: RADII.cards,
+    paddingVertical: 14,
+    paddingLeft: 14,
+    paddingRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 14,
+  },
+  badge: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardText: {
     flex: 1,
-    gap: 2,
+    minHeight: 44,
+    justifyContent: 'center',
+    gap: 3,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 24,
   },
-  backButton: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+  bottomBar: {
+    paddingTop: 16,
+    paddingHorizontal: SCREEN_GUTTER,
+    borderTopWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0E2A33',
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: -6 },
+      },
+      default: { elevation: 8 },
+    }),
+  },
+  back: {
+    alignSelf: 'stretch',
   },
 });

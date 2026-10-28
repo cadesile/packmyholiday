@@ -2,99 +2,123 @@ import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 import { pairedFontConfig } from './fonts';
 import type { ClimateType, PackingItem } from '../types/packing';
 
-// "Superr" palette: cream-paper canvas + marker-orange accent (the guide's
-// only chromatic UI color), charcoal ink for all text/borders/structure. See
-// the pasted Superr style reference for the full rationale — this is a light
-// re-theme of that guide's tokens, not an independent invention.
+// "Lagoon & Sun": a calm teal base (Lagoon) so lists and numbers stay readable,
+// with one warm amber (Sun) reserved for the next action on each screen.
+//
+// Role mapping — Paper has no "cta" slot, so the Sun accent lives in
+// `secondary` / `onSecondary` in both modes. AppButton's "primary" variant is
+// the only consumer; everything else is teal.
 export const lightTheme = {
   ...MD3LightTheme,
+  roundness: 14,
   fonts: pairedFontConfig,
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#ff6f1e', // Marker Orange
-    onPrimary: '#fdfbf9', // Cream Paper
-    primaryContainer: '#ffe4d1',
-    onPrimaryContainer: '#2b1a07', // Cocoa Ink
-    secondary: '#ce500a', // Burnt Sienna
-    onSecondary: '#fdfbf9',
-    secondaryContainer: '#f7efe9', // Dew Drop
-    onSecondaryContainer: '#2b1a07',
-    tertiary: '#22c55e', // Sprout Sticker — used sparingly for tag/divider accents only
-    onTertiary: '#fdfbf9',
-    tertiaryContainer: '#dcf6e6',
-    onTertiaryContainer: '#0f3d22',
-    background: '#fdfbf9', // Cream Paper
-    onBackground: '#171717', // Charcoal
-    surface: '#fdfbf9',
-    onSurface: '#171717',
-    surfaceVariant: '#f7efe9', // Dew Drop
-    onSurfaceVariant: '#5c5754',
-    outline: '#171717', // Charcoal — the guide's only border color, no fill states
-    outlineVariant: '#bebcbb', // Shadow Mist
-    error: '#DC2626',
+    primary: '#0B6B73', // Lagoon 600
+    onPrimary: '#FFFFFF',
+    primaryContainer: '#E6F3F3', // Lagoon 50 — selected fills
+    onPrimaryContainer: '#0B5A62', // Lagoon 700
+    secondary: '#FFB627', // Sun 400 — next-action button fill
+    onSecondary: '#0E2A33', // Ink
+    secondaryContainer: '#FFEBC0', // Sun 100 — info banners
+    onSecondaryContainer: '#0E2A33',
+    tertiary: '#2F5D8C',
+    onTertiary: '#FFFFFF',
+    tertiaryContainer: '#DCE8F4',
+    onTertiaryContainer: '#16314E',
+    background: '#F2F6F6', // Ground
+    onBackground: '#0E2A33', // Ink
+    surface: '#FFFFFF',
+    onSurface: '#0E2A33',
+    surfaceVariant: '#E6EEEE', // segmented-control track, progress track
+    onSurfaceVariant: '#51666E', // Ink 2 — secondary text
+    outline: '#7F9298', // unselected control borders (3:1 on white)
+    outlineVariant: '#D9E3E4', // Line — card and divider borders
+    error: '#C2412D', // Alert
     onError: '#FFFFFF',
+    errorContainer: '#FBE3DE',
+    onErrorContainer: '#5A150B',
+    // Cards sit on borders, not tint: keep every Paper elevation level white.
+    elevation: {
+      level0: 'transparent',
+      level1: '#FFFFFF',
+      level2: '#FFFFFF',
+      level3: '#FFFFFF',
+      level4: '#FFFFFF',
+      level5: '#FFFFFF',
+    },
   },
 };
 
-// The guide is light-only; this dark variant is an interpretation, not
-// specified by the source — same roles, inverted for a dark canvas, keeping
-// Marker Orange as the one constant accent.
 export const darkTheme = {
   ...MD3DarkTheme,
+  roundness: 14,
   fonts: pairedFontConfig,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: '#ff8c47', // brightened Marker Orange for dark-surface contrast
-    onPrimary: '#2b1a07',
-    primaryContainer: '#5c3212',
-    onPrimaryContainer: '#ffe4d1',
-    secondary: '#e2895a',
-    onSecondary: '#2b1a07',
-    secondaryContainer: '#3a2a20',
-    onSecondaryContainer: '#f7efe9',
-    tertiary: '#4ade80',
-    onTertiary: '#0f3d22',
-    tertiaryContainer: '#155d34',
-    onTertiaryContainer: '#dcf6e6',
-    background: '#171717', // Charcoal
-    onBackground: '#fdfbf9',
-    surface: '#221f1c',
-    onSurface: '#fdfbf9',
-    surfaceVariant: '#2b1a07',
-    onSurfaceVariant: '#bebcbb',
-    outline: '#bebcbb',
-    outlineVariant: '#3a342f',
-    error: '#F87171',
+    primary: '#5CCBD1',
+    onPrimary: '#0A1A20',
+    primaryContainer: '#16444A',
+    onPrimaryContainer: '#CFE9EA',
+    secondary: '#FFC857', // Sun, lifted for dark surfaces
+    onSecondary: '#0A1A20',
+    secondaryContainer: '#4A3A12',
+    onSecondaryContainer: '#FFEBC0',
+    tertiary: '#8FB5DE',
+    onTertiary: '#0A1A20',
+    tertiaryContainer: '#1F3F5F',
+    onTertiaryContainer: '#DCE8F4',
+    background: '#0A1A20',
+    onBackground: '#E8F2F3',
+    surface: '#12262E',
+    onSurface: '#E8F2F3',
+    surfaceVariant: '#1B333C',
+    onSurfaceVariant: '#9DB4BA',
+    outline: '#5E7A82',
+    outlineVariant: '#24404A',
+    error: '#F08A78',
     onError: '#3B0A0A',
+    errorContainer: '#5A150B',
+    onErrorContainer: '#FBE3DE',
+    elevation: {
+      level0: 'transparent',
+      level1: '#12262E',
+      level2: '#12262E',
+      level3: '#12262E',
+      level4: '#12262E',
+      level5: '#12262E',
+    },
   },
 };
 
-// Decorative-only sticker palette — the guide is explicit these never
-// promote to functional UI (buttons, links, category/status colors).
-export const STICKER_COLORS = {
-  sky: '#3b82f6',
-  bubblegum: '#ff66cf',
-  sprout: '#22c55e',
+// Logo and illustration colours. These never change with the colour scheme
+// except where a LogoMark `variant` says so.
+export const BRAND = {
+  lagoon: '#0B6B73',
+  sun: '#FFB627',
+  ink: '#0E2A33',
+  white: '#FFFFFF',
+  groundDark: '#0A1A20',
 } as const;
 
 // Per-category accent colors for icon badges on the packing plan (Output)
 // screen — not part of the MD3 palette, since Paper's theme has no slot for
-// a five-way category accent map.
+// a five-way category accent map. All pass 4.5:1 under a white glyph.
 export const CATEGORY_COLORS: Record<PackingItem['category'], string> = {
-  clothing: '#ce500a',
-  toiletries: '#0e7490',
-  footwear: '#a16207',
-  electronics: '#374b43',
-  essentials: '#7c3aed',
+  clothing: '#0B6B73',
+  toiletries: '#A23B72',
+  footwear: '#8A6A00',
+  electronics: '#2F5D8C',
+  essentials: '#6B4FA3',
 };
 
 // Trip summary card background per presumed climate — same rationale as
-// CATEGORY_COLORS: not part of the MD3 palette, Paper has no slot for this.
+// CATEGORY_COLORS. All pass 4.5:1 under white text.
 export const CLIMATE_CARD_COLORS: Record<ClimateType, string> = {
-  warm: '#ff6f1e',
-  mild: '#5c5754',
-  cold: '#0e7490',
-  rainy: '#374b43',
+  warm: '#B4510A',
+  mild: '#0B6B73',
+  cold: '#2F5D8C',
+  rainy: '#4A6174',
 };
 
 export const CLIMATE_CARD_ICONS: Record<ClimateType, string> = {

@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { List, RadioButton, Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { AIRLINE_PRESETS } from '../data/airlineCatalog';
+import { RadioCard } from './RadioCard';
 
 interface AirlinePickerProps {
   selectedAirlineId: string | undefined;
@@ -9,29 +10,29 @@ interface AirlinePickerProps {
 }
 
 export function AirlinePicker({ selectedAirlineId, onSelect }: AirlinePickerProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
-      <RadioButton.Group
-        value={selectedAirlineId ?? ''}
-        onValueChange={(value) => onSelect(value || undefined)}
-      >
-        {AIRLINE_PRESETS.map((preset) => (
-          <List.Item
-            key={preset.id}
-            title={preset.name}
-            description={`Checked ${preset.defaultCheckedWeightKg}kg · Cabin ${preset.defaultCabinWeightKg}kg`}
-            onPress={() => onSelect(preset.id)}
-            left={() => <RadioButton value={preset.id} />}
-          />
-        ))}
-      </RadioButton.Group>
-      {!selectedAirlineId ? <Text variant="bodySmall">No airline selected — using manual baggage entry.</Text> : null}
+    <View style={styles.container} accessibilityRole="radiogroup">
+      {AIRLINE_PRESETS.map((preset) => (
+        <RadioCard
+          key={preset.id}
+          title={preset.name}
+          description={`Checked ${preset.defaultCheckedWeightKg}kg · Cabin ${preset.defaultCabinWeightKg}kg`}
+          selected={preset.id === selectedAirlineId}
+          onPress={() => onSelect(preset.id)}
+        />
+      ))}
+      {!selectedAirlineId ? (
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          No airline selected — using manual baggage entry.
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
+    gap: 10,
   },
 });

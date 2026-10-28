@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Button, HelperText } from 'react-native-paper';
+import { HelperText } from 'react-native-paper';
+import { AppButton } from '../../components/AppButton';
 import { WizardStepLayout } from '../../components/WizardStepLayout';
 import { TravelerCard } from '../../components/TravelerCard';
 import { useTripStore } from '../../state/useTripStore';
@@ -17,14 +18,13 @@ export function Step2Travelers() {
 
   return (
     <WizardStepLayout
-      title="Travelers"
+      title="Who’s coming?"
+      stepName="Travelers"
       stepNumber={2}
       totalSteps={5}
       onBack={prevStep}
       onNext={nextStep}
       nextDisabled={!hasTravelers}
-      stickerIcon="account-heart"
-      stickerColor="bubblegum"
     >
       {draftConfig.travelers.map((traveler, index) => (
         <TravelerCard
@@ -36,9 +36,9 @@ export function Step2Travelers() {
         />
       ))}
 
-      <Button mode="outlined" icon="account-plus" onPress={addTraveler} style={styles.addButton}>
-        Add Traveler
-      </Button>
+      <AppButton variant="secondary" iconLeft="account-plus-outline" onPress={addTraveler} style={styles.addButton}>
+        Add traveler
+      </AppButton>
 
       {!hasTravelers ? <HelperText type="error">Add at least one traveler to continue.</HelperText> : null}
     </WizardStepLayout>
@@ -47,6 +47,9 @@ export function Step2Travelers() {
 
 const styles = StyleSheet.create({
   addButton: {
-    marginTop: 4,
+    height: 56,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
 });
