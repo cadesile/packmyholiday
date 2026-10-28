@@ -19,7 +19,15 @@ export function Step3ActivityMatrix() {
   };
 
   return (
-    <WizardStepLayout title="Trip Style & Activities" stepNumber={3} totalSteps={5} onBack={prevStep} onNext={nextStep}>
+    <WizardStepLayout
+      title="Trip Style & Activities"
+      stepNumber={3}
+      totalSteps={5}
+      onBack={prevStep}
+      onNext={nextStep}
+      stickerIcon="lightning-bolt"
+      stickerColor="sprout"
+    >
       <Text variant="bodyMedium">Select everything that applies — this shapes your packing list.</Text>
       <ActivityChipGrid selected={draftConfig.activities} onToggle={toggleActivity} />
     </WizardStepLayout>

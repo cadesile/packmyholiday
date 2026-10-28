@@ -1,7 +1,12 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Text, useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { StepProgressDots } from './StepProgressDots';
+import { StickerAccent } from './StickerAccent';
+import { PillButton } from './PillButton';
+import { RADII } from '../theme/radii';
+import { SPACING } from '../theme/spacing';
+import { STICKER_COLORS } from '../theme/paperTheme';
 
 interface WizardStepLayoutProps {
   title: string;
@@ -12,6 +17,9 @@ interface WizardStepLayoutProps {
   onNext: () => void;
   nextDisabled?: boolean;
   nextLabel?: string;
+  /** MaterialCommunityIcons glyph shown as a rotated sticker accent beside the title. */
+  stickerIcon?: string;
+  stickerColor?: keyof typeof STICKER_COLORS;
 }
 
 export function WizardStepLayout({
@@ -23,6 +31,8 @@ export function WizardStepLayout({
   onNext,
   nextDisabled,
   nextLabel = 'Next',
+  stickerIcon,
+  stickerColor,
 }: WizardStepLayoutProps) {
   const theme = useTheme();
   return (
@@ -31,22 +41,25 @@ export function WizardStepLayout({
         <StepProgressDots currentStep={stepNumber} totalSteps={totalSteps} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text variant="headlineSmall" style={styles.title}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text variant="headlineSmall" style={styles.title}>
+            {title}
+          </Text>
+          {stickerIcon ? <StickerAccent icon={stickerIcon} color={stickerColor} /> : null}
+        </View>
         {children}
       </ScrollView>
-      <View style={[styles.bottomNav, { borderTopColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.colors.primary }]}>
         {onBack ? (
-          <Button mode="outlined" onPress={onBack} style={styles.navButton}>
+          <PillButton onPress={onBack} style={styles.navButton}>
             Back
-          </Button>
+          </PillButton>
         ) : (
           <View style={styles.navButton} />
         )}
-        <Button mode="contained" onPress={onNext} disabled={nextDisabled} style={styles.navButton}>
+        <PillButton onPress={onNext} disabled={nextDisabled} style={styles.navButton}>
           {nextLabel}
-        </Button>
+        </PillButton>
       </View>
     </View>
   );
@@ -65,15 +78,22 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
   title: {
     marginBottom: 8,
+    textTransform: 'lowercase',
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
     gap: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: RADII.footer,
+    borderTopRightRadius: RADII.footer,
   },
   navButton: {
     flex: 1,

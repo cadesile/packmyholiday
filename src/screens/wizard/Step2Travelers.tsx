@@ -23,6 +23,8 @@ export function Step2Travelers() {
       onBack={prevStep}
       onNext={nextStep}
       nextDisabled={!hasTravelers}
+      stickerIcon="account-heart"
+      stickerColor="bubblegum"
     >
       {draftConfig.travelers.map((traveler, index) => (
         <TravelerCard

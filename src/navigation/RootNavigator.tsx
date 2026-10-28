@@ -9,7 +9,7 @@ import { Step5BaggageReview } from '../screens/wizard/Step5BaggageReview';
 import { OutputScreen } from '../screens/OutputScreen';
 import { SavedTripsScreen } from '../screens/SavedTripsScreen';
 import { useTripStore } from '../state/useTripStore';
-import { JAKARTA_FAMILY } from '../theme/fonts';
+import { FRAUNCES_FAMILY } from '../theme/fonts';
 
 type Screen = 'wizard' | 'output' | 'savedTrips';
 
@@ -24,11 +24,11 @@ const WIZARD_STEPS: Record<number, React.ComponentType> = {
 function AppTitle() {
   const theme = useTheme();
   return (
-    <Text variant="titleLarge" style={{ fontFamily: JAKARTA_FAMILY.bold }}>
-      <Text variant="titleLarge" style={{ color: theme.colors.onSurface, fontFamily: JAKARTA_FAMILY.bold }}>
+    <Text variant="titleLarge" style={{ fontFamily: FRAUNCES_FAMILY.bold }}>
+      <Text variant="titleLarge" style={{ color: theme.colors.onSurface, fontFamily: FRAUNCES_FAMILY.bold }}>
         pack
       </Text>
-      <Text variant="titleLarge" style={{ color: theme.colors.primary, fontFamily: JAKARTA_FAMILY.bold }}>
+      <Text variant="titleLarge" style={{ color: theme.colors.primary, fontFamily: FRAUNCES_FAMILY.bold }}>
         myholiday
       </Text>
     </Text>

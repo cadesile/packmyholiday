@@ -5,6 +5,7 @@ import { WeightBudgetBar } from '../components/WeightBudgetBar';
 import { PackingItemRow } from '../components/PackingItemRow';
 import { SelectableChip } from '../components/SelectableChip';
 import { TripSummaryCard } from '../components/TripSummaryCard';
+import { PillButton } from '../components/PillButton';
 import { useTripStore } from '../state/useTripStore';
 import { buildTravelerLabels } from '../utils/travelerLabel';
 import { hasTripChanged } from '../utils/tripDiff';
@@ -89,9 +90,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
     return (
       <View style={styles.centered}>
         <Text variant="titleMedium">No packing plan yet.</Text>
-        <Button mode="contained" onPress={onDone}>
-          Back to Wizard
-        </Button>
+        <PillButton onPress={onDone}>Back to Wizard</PillButton>
       </View>
     );
   }
@@ -185,8 +184,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
           mode="outlined"
           style={styles.saveInput}
         />
-        <Button
-          mode="contained"
+        <PillButton
           disabled={loadedTrip ? !isDirty : !displayName.trim()}
           onPress={async () => {
             await saveTrip(displayName.trim());
@@ -194,7 +192,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
           }}
         >
           Save Trip
-        </Button>
+        </PillButton>
       </View>
 
       <Button mode="text" onPress={onDone}>

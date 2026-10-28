@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
-import { INTER_FAMILY } from '../theme/fonts';
+import { GEIST_FAMILY } from '../theme/fonts';
 import { HIT_SLOP_MIN } from '../theme/touchTargets';
 import type { PackingItem } from '../types/packing';
 
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontFamily: INTER_FAMILY.medium,
+    fontFamily: GEIST_FAMILY.medium,
   },
   metaRow: {
     flexDirection: 'row',

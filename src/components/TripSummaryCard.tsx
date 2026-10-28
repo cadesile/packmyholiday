@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
-import { JAKARTA_FAMILY } from '../theme/fonts';
+import { FRAUNCES_FAMILY } from '../theme/fonts';
 import { CLIMATE_CARD_COLORS, CLIMATE_CARD_ICONS } from '../theme/paperTheme';
 import { formatDateRange } from '../utils/tripDates';
 import type { ClimateType } from '../types/packing';
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     right: 16,
   },
   destination: {
-    fontFamily: JAKARTA_FAMILY.bold,
+    fontFamily: FRAUNCES_FAMILY.bold,
     paddingRight: 64,
   },
   subtitle: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontFamily: JAKARTA_FAMILY.bold,
+    fontFamily: FRAUNCES_FAMILY.bold,
   },
   statDivider: {
     width: StyleSheet.hairlineWidth,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Avatar, Chip, useTheme } from 'react-native-paper';
-import { INTER_FAMILY } from '../theme/fonts';
+import { GEIST_FAMILY } from '../theme/fonts';
 
 interface SelectableChipProps {
   label: string;
@@ -50,6 +50,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   selectedText: {
-    fontFamily: INTER_FAMILY.bold,
+    fontFamily: GEIST_FAMILY.bold,
   },
 });

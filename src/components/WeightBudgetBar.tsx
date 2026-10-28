@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ProgressBar, Text, useTheme } from 'react-native-paper';
-import { JAKARTA_FAMILY } from '../theme/fonts';
+import { FRAUNCES_FAMILY } from '../theme/fonts';
 
 interface WeightBudgetBarProps {
   totalEstimatedWeightKg: number;
@@ -45,6 +45,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   weightText: {
-    fontFamily: JAKARTA_FAMILY.bold,
+    fontFamily: FRAUNCES_FAMILY.bold,
   },
 });

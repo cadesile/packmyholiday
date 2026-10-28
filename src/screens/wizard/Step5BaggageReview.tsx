@@ -22,6 +22,8 @@ export function Step5BaggageReview() {
       onBack={prevStep}
       onNext={computePlan}
       nextLabel="Generate Packing Plan"
+      stickerIcon="bag-suitcase"
+      stickerColor="sky"
     >
       {airlinePreset ? (
         <HelperText type="info" visible>

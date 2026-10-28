@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card, IconButton, SegmentedButtons, Switch, Text } from 'react-native-paper';
 import type { AgeGroup, StylePreference, Traveler } from '../types/packing';
 import { HIT_SLOP_MIN } from '../theme/touchTargets';
-import { INTER_FAMILY } from '../theme/fonts';
+import { GEIST_FAMILY } from '../theme/fonts';
 
 interface TravelerCardProps {
   traveler: Traveler;
@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fieldLabel: {
-    fontFamily: INTER_FAMILY.semibold,
+    fontFamily: GEIST_FAMILY.semibold,
   },
 });

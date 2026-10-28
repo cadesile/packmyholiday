@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { clearSavedTrips } from '../state/storage';
+import { PillButton } from './PillButton';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -31,9 +32,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           <Text variant="bodyMedium" style={styles.message}>
             {this.state.error.message}
           </Text>
-          <Button mode="contained" onPress={this.handleReset}>
-            Reset Saved Trips & Continue
-          </Button>
+          <PillButton onPress={this.handleReset}>Reset Saved Trips & Continue</PillButton>
         </View>
       );
     }

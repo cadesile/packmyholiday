@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { useTripStore } from '../state/useTripStore';
 import { HIT_SLOP_MIN } from '../theme/touchTargets';
-import { JAKARTA_FAMILY } from '../theme/fonts';
+import { FRAUNCES_FAMILY } from '../theme/fonts';
 
 interface SavedTripsScreenProps {
   onOpenTrip: () => void;
@@ -31,7 +31,7 @@ export function SavedTripsScreen({ onOpenTrip, onBack }: SavedTripsScreenProps) 
           <Card style={styles.card} mode="contained" onPress={() => { loadTrip(item.id); onOpenTrip(); }}>
             <Card.Content style={styles.cardContent}>
               <View style={styles.cardText}>
-                <Text variant="titleMedium" style={{ fontFamily: JAKARTA_FAMILY.semibold }}>
+                <Text variant="titleMedium" style={{ fontFamily: FRAUNCES_FAMILY.semibold }}>
                   {item.name}
                 </Text>
                 <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
   },
   title: {
-    fontFamily: JAKARTA_FAMILY.bold,
+    fontFamily: FRAUNCES_FAMILY.bold,
   },
   listContent: {
     padding: 16,

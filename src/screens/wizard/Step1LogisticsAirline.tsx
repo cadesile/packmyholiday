@@ -27,7 +27,14 @@ export function Step1LogisticsAirline() {
   const theme = useTheme();
 
   return (
-    <WizardStepLayout title="Logistics & Airline" stepNumber={1} totalSteps={5} onNext={nextStep}>
+    <WizardStepLayout
+      title="Logistics & Airline"
+      stepNumber={1}
+      totalSteps={5}
+      onNext={nextStep}
+      stickerIcon="airplane"
+      stickerColor="sky"
+    >
       <LocationSearchInput initialQuery={draftConfig.destination} onSelect={selectLocation} />
 
       <Text variant="titleMedium">Trip Dates</Text>

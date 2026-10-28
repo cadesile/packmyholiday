@@ -20,7 +20,15 @@ export function Step4HealthHygiene() {
     draftConfig.climate === 'warm' || draftConfig.climate === 'rainy' || draftConfig.activities.includes('hiking');
 
   return (
-    <WizardStepLayout title="Health, Hygiene & Logistics" stepNumber={4} totalSteps={5} onBack={prevStep} onNext={nextStep}>
+    <WizardStepLayout
+      title="Health, Hygiene & Logistics"
+      stepNumber={4}
+      totalSteps={5}
+      onBack={prevStep}
+      onNext={nextStep}
+      stickerIcon="heart-pulse"
+      stickerColor="bubblegum"
+    >
       <Text variant="titleMedium">Toiletry Strategy</Text>
       <SegmentedButtons
         value={draftConfig.toiletryStrategy}
