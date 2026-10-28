@@ -1,5 +1,5 @@
 // src/components/TripDateRangePicker.tsx
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerChangeEvent } from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Icon, Text, useTheme } from 'react-native-paper';
@@ -22,12 +22,9 @@ export function TripDateRangePicker({ startDate, endDate, onChange }: TripDateRa
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
   const isInvalidRange = endDate < startDate;
 
-  function handleChange(event: DateTimePickerEvent, selected: Date | undefined) {
-    if (Platform.OS === 'android') {
-      setActivePicker(null);
-      if (event.type !== 'set' || !selected) return;
-    }
-    if (!selected) return;
+  function handleValueChange(_event: DateTimePickerChangeEvent, selected: Date) {
+    // Android's dialog closes itself on selection; iOS stays open until "Done".
+    if (Platform.OS === 'android') setActivePicker(null);
 
     const iso = toISODateString(selected);
     if (activePicker === 'start') {
@@ -81,7 +78,8 @@ export function TripDateRangePicker({ startDate, endDate, onChange }: TripDateRa
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           minimumDate={activePicker === 'end' ? parseISODate(startDate) : undefined}
           accentColor={theme.colors.primary}
-          onChange={handleChange}
+          onValueChange={handleValueChange}
+          onDismiss={() => setActivePicker(null)}
         />
       ) : null}
 
