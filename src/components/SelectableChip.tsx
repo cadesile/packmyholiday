@@ -1,55 +1,77 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Avatar, Chip, useTheme } from 'react-native-paper';
-import { GEIST_FAMILY } from '../theme/fonts';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Icon, Text, useTheme } from 'react-native-paper';
+import { INTER_FAMILY } from '../theme/fonts';
+import { RADII } from '../theme/radii';
+import { MIN_TOUCH } from '../theme/touchTargets';
 
 interface SelectableChipProps {
   label: string;
   icon?: string;
-  /** Renders `icon` as a colored circular badge (e.g. per-category accent) instead of a plain tinted icon. */
+  /** Renders `icon` as a coloured circular badge (e.g. per-category accent) instead of a plain tinted icon. */
   badgeColor?: string;
   selected: boolean;
   onPress: () => void;
 }
 
-// Paper's Chip only swaps to a checkmark when no custom `icon` is passed, and
-// showSelectedOverlay defaults to false — so a selected chip with a custom
-// icon is otherwise visually identical to an unselected one. This makes the
-// selected state explicit via background/border/text instead.
+// Pill used for the packing-plan category tabs. Selected = tint fill + Lagoon
+// border + semibold label; the badge keeps its category colour either way.
 export function SelectableChip({ label, icon, badgeColor, selected, onPress }: SelectableChipProps) {
   const theme = useTheme();
-  const avatar =
-    badgeColor && icon ? (
-      <Avatar.Icon size={22} icon={icon} color="#FFFFFF" style={{ backgroundColor: badgeColor }} />
-    ) : undefined;
 
   return (
-    <Chip
-      icon={avatar ? undefined : icon}
-      avatar={avatar}
-      selected={selected}
-      selectedColor={theme.colors.primary}
-      showSelectedOverlay
-      mode={selected ? 'flat' : 'outlined'}
+    <Pressable
+      accessibilityRole="tab"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
       onPress={onPress}
       style={[
         styles.chip,
-        selected
-          ? { backgroundColor: theme.colors.secondaryContainer, borderColor: theme.colors.primary, borderWidth: 1.5 }
-          : { borderColor: theme.colors.outline },
+        {
+          borderWidth: selected ? 2 : 1.5,
+          borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant,
+          backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surface,
+          paddingLeft: icon ? 8 : 16,
+        },
       ]}
-      textStyle={selected ? styles.selectedText : undefined}
     >
-      {label}
-    </Chip>
+      {icon ? (
+        badgeColor ? (
+          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
+            <Icon source={icon} size={16} color="#FFFFFF" />
+          </View>
+        ) : (
+          <Icon source={icon} size={20} color={theme.colors.primary} />
+        )
+      ) : null}
+      <Text
+        variant="bodySmall"
+        style={{
+          fontSize: 15,
+          color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurface,
+          fontFamily: selected ? INTER_FAMILY.semibold : INTER_FAMILY.medium,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   chip: {
-    marginBottom: 4,
+    height: MIN_TOUCH,
+    paddingRight: 14,
+    borderRadius: RADII.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  selectedText: {
-    fontFamily: GEIST_FAMILY.bold,
+  badge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

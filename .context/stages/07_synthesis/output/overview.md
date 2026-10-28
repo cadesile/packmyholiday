@@ -11,7 +11,7 @@
 - Everything the user edits sits in one zustand store; plan generation is a pure function over that config. See `../../03_data/output/state.md` and `entities.md` for the rules.
 - The one network dependency is Open-Meteo, used to look up a destination and derive the trip's climate from a forecast or last year's weather. See `../../04_interfaces/output/services.md`.
 - Screen switching is hand-rolled in `RootNavigator`, with no navigation library. See `../../04_interfaces/output/routes.md`.
-- Visual identity is a cream-paper / marker-orange React Native Paper theme with Fraunces and Geist fonts. See `../../05_ui/output/design-system.md`.
+- Visual identity is a "Lagoon & Sun" (teal + amber) React Native Paper theme with Bricolage Grotesque and Inter fonts. See `../../05_ui/output/design-system.md`.
 
 ## Maturity
 31 commits over six days (2026-08-06 → 2026-08-11), with test coverage on the engines, store and weather adapters but none on screens. Native builds go through EAS. A separate website and backend are designed but not built here. See `../../06_documentation/output/index.md`, and `current-focus.md` for what is moving now.

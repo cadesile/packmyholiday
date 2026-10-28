@@ -10,13 +10,13 @@
 
 | Load scope | Est. tokens |
 |---|---|
-| Everything (`.context/stages/*/output/*.md`, all stages) | 10234 |
+| Everything (`.context/stages/*/output/*.md`, all stages) | 11368 |
 | Router only (`.context/CONTEXT.md`) | 293 |
 | `01_overview` (router + its `CONTEXT.md` + its `output/`) | — (no output written yet) |
 | `02_architecture` (same shape) | 2242 |
 | `03_data` (same shape) | 3790 |
 | `04_interfaces` (same shape) | 2518 |
-| `05_ui` (same shape) | 3069 |
+| `05_ui` (same shape) | ~3048 (output only; router/CONTEXT.md unremeasured) |
 | `06_documentation` (same shape) | 1222 |
 | `07_synthesis` (same shape) | 2426 |
 

@@ -8,6 +8,7 @@ Every markdown file in the repo outside `node_modules/`, `.expo/`, `.superpowers
 | `2026-08-06-baby-toddler-items.md` | Task-by-task plan (816 lines) to add a `toddler` age group and expanded baby/toddler items — `toddlerEssentials.ts`, `babyFamilyGear.ts`, and three new injection blocks in `generatePackingPlan` |
 | `2026-08-06-location-weather-lookup.md` | Plan (1,674 lines) for Open-Meteo location search and weather-driven climate in Wizard Step 1: a provider-agnostic `src/services/weather/` layer behind `IGeocodingProvider` / `IWeatherProvider` |
 | `2026-08-11-website-backend.md` | Plan (2,250 lines) for a **new, separate** Symfony 7 / PHP 8.4 / Postgres 16 repo, `packmyholiday-backend`: public site, `/admin`, versioned `/api/v1`, Docker deploy to Hetzner. Not implemented in this repo |
+| `2026-10-28-lagoon-sun-integration.md` | Plan to integrate the Lagoon & Sun UI overhaul bundle: file review, dependency swap, verification, and the `.context` update list |
 
 ## Specs (`docs/superpowers/specs/`)
 | File | Covers |

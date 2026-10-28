@@ -4,6 +4,10 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { List, Text, TextInput, useTheme } from 'react-native-paper';
 import { createTravelPlannerService } from '../services/weather/factory';
 import type { LocationResult } from '../services/weather/types';
+import { INTER_FAMILY } from '../theme/fonts';
+import { RADII } from '../theme/radii';
+import { CONTROL_HEIGHT } from '../theme/spacing';
+import { SectionLabel } from './SectionLabel';
 
 const DEBOUNCE_MS = 350;
 
@@ -60,16 +64,24 @@ export function LocationSearchInput({ initialQuery, onSelect }: LocationSearchIn
 
   return (
     <View style={styles.container}>
+      <SectionLabel>Destination</SectionLabel>
       <TextInput
-        label="Destination"
+        accessibilityLabel="Destination"
+        placeholder="Where to?"
         value={query}
         onChangeText={handleChangeText}
         onFocus={() => setDropdownOpen(true)}
         mode="outlined"
+        left={<TextInput.Icon icon="map-marker-outline" color={theme.colors.primary} />}
         right={loading ? <TextInput.Icon icon={() => <ActivityIndicator size={16} />} /> : undefined}
+        outlineColor={theme.colors.outlineVariant}
+        activeOutlineColor={theme.colors.primary}
+        outlineStyle={styles.inputOutline}
+        style={[styles.input, { backgroundColor: theme.colors.surface }]}
+        contentStyle={styles.inputContent}
       />
       {dropdownOpen && results.length > 0 ? (
-        <View style={[styles.dropdown, { borderColor: theme.colors.outline, backgroundColor: theme.colors.surface }]}>
+        <View style={[styles.dropdown, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
           {results.map((location) => (
             <Pressable key={location.id} onPress={() => handleSelect(location)}>
               <List.Item
@@ -92,11 +104,21 @@ export function LocationSearchInput({ initialQuery, onSelect }: LocationSearchIn
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
+    gap: 8,
+  },
+  input: {
+    height: CONTROL_HEIGHT,
+  },
+  inputContent: {
+    fontFamily: INTER_FAMILY.medium,
+  },
+  inputOutline: {
+    borderRadius: RADII.inputs,
+    borderWidth: 1.5,
   },
   dropdown: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 8,
+    borderWidth: 1,
+    borderRadius: RADII.inputs,
     overflow: 'hidden',
   },
   emptyHint: {

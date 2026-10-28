@@ -1,72 +1,68 @@
 import { configureFonts } from 'react-native-paper';
 
+// Lagoon & Sun type system: Bricolage Grotesque (headings, numbers, wordmark)
+// + Inter (body, labels, controls).
+//
 // Custom-loaded fonts don't fake-bold: RN won't synthesize a heavier weight
-// for a TTF that wasn't shipped as that weight, so each MD3 variant must map
-// to the actual weight file matching its default fontWeight token.
-const WEIGHT_TO_GEIST_FAMILY: Record<string, string> = {
-  '100': 'Geist_400Regular',
-  '200': 'Geist_400Regular',
-  '300': 'Geist_400Regular',
-  '400': 'Geist_400Regular',
-  '500': 'Geist_500Medium',
-  '600': 'Geist_600SemiBold',
-  '700': 'Geist_700Bold',
-  '800': 'Geist_700Bold',
-  '900': 'Geist_700Bold',
-};
-
-// Fraunces only ships 400/500/600 here — there is no bolder weight file, so
-// 700+ falls back to 600SemiBold rather than faking a bold that doesn't exist.
-const WEIGHT_TO_FRAUNCES_FAMILY: Record<string, string> = {
-  '100': 'Fraunces_400Regular',
-  '200': 'Fraunces_400Regular',
-  '300': 'Fraunces_400Regular',
-  '400': 'Fraunces_400Regular',
-  '500': 'Fraunces_500Medium',
-  '600': 'Fraunces_600SemiBold',
-  '700': 'Fraunces_600SemiBold',
-  '800': 'Fraunces_600SemiBold',
-  '900': 'Fraunces_600SemiBold',
-};
-
-// Fraunces (Headings, standing in for the Superr style guide's "gelica") +
-// Geist (Body & Labels): display/headline/title variants read as headings and
-// get Fraunces; body/label variants stay Geist.
-const HEADING_VARIANTS = new Set([
-  'displayLarge',
-  'displayMedium',
-  'displaySmall',
-  'headlineLarge',
-  'headlineMedium',
-  'headlineSmall',
-  'titleLarge',
-  'titleMedium',
-  'titleSmall',
-]);
-
-const baseTypescale = configureFonts();
-
-function withPairedFamilies(typescale: typeof baseTypescale): typeof baseTypescale {
-  const entries = Object.entries(typescale).map(([key, value]) => {
-    const familyMap = HEADING_VARIANTS.has(key) ? WEIGHT_TO_FRAUNCES_FAMILY : WEIGHT_TO_GEIST_FAMILY;
-    const fallback = HEADING_VARIANTS.has(key) ? 'Fraunces_400Regular' : 'Geist_400Regular';
-    return [key, { ...value, fontFamily: familyMap[String(value.fontWeight)] ?? fallback }];
-  });
-  return Object.fromEntries(entries) as typeof baseTypescale;
-}
-
-export const pairedFontConfig = withPairedFamilies(baseTypescale);
-
-export const GEIST_FAMILY = {
-  regular: 'Geist_400Regular',
-  medium: 'Geist_500Medium',
-  semibold: 'Geist_600SemiBold',
-  bold: 'Geist_700Bold',
+// for a TTF that wasn't shipped as that weight, so every variant names the
+// exact weight file and keeps `fontWeight: '400'` to stop Android applying a
+// second synthetic bold on top.
+export const INTER_FAMILY = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
 } as const;
 
-export const FRAUNCES_FAMILY = {
-  regular: 'Fraunces_400Regular',
-  medium: 'Fraunces_500Medium',
-  semibold: 'Fraunces_600SemiBold',
-  bold: 'Fraunces_600SemiBold',
+export const BRICOLAGE_FAMILY = {
+  semibold: 'BricolageGrotesque_600SemiBold',
+  bold: 'BricolageGrotesque_700Bold',
 } as const;
+
+type Type = {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  letterSpacing: number;
+  fontWeight: '400';
+};
+
+const heading = (family: string, fontSize: number, lineHeight: number, trackingEm: number): Type => ({
+  fontFamily: family,
+  fontSize,
+  lineHeight,
+  letterSpacing: Math.round(fontSize * trackingEm * 100) / 100,
+  fontWeight: '400',
+});
+
+const body = (family: string, fontSize: number, lineHeight: number, letterSpacing = 0): Type => ({
+  fontFamily: family,
+  fontSize,
+  lineHeight,
+  letterSpacing,
+  fontWeight: '400',
+});
+
+// Maps the design-system type scale (see .context/stages/05_ui/output/design-system.md)
+// onto Paper's MD3 variant names.
+export const pairedFontConfig = configureFonts({
+  config: {
+    // Bricolage — headings
+    displayLarge: heading(BRICOLAGE_FAMILY.bold, 40, 44, -0.02),
+    displayMedium: heading(BRICOLAGE_FAMILY.bold, 36, 40, -0.02),
+    displaySmall: heading(BRICOLAGE_FAMILY.bold, 32, 36, -0.02), // Display: wizard step titles
+    headlineLarge: heading(BRICOLAGE_FAMILY.bold, 30, 34, -0.015),
+    headlineMedium: heading(BRICOLAGE_FAMILY.bold, 26, 30, -0.01), // Title: plan / saved trips
+    headlineSmall: heading(BRICOLAGE_FAMILY.bold, 24, 28, -0.01), // trip card destination
+    titleLarge: heading(BRICOLAGE_FAMILY.semibold, 20, 26, 0), // Heading
+    titleMedium: heading(BRICOLAGE_FAMILY.semibold, 18, 22, 0), // Subhead: card titles
+    titleSmall: heading(BRICOLAGE_FAMILY.bold, 17, 22, 0), // list section headers
+    // Inter — body and controls
+    bodyLarge: body(INTER_FAMILY.regular, 16, 24),
+    bodyMedium: body(INTER_FAMILY.regular, 16, 24), // Body
+    bodySmall: body(INTER_FAMILY.regular, 14, 20), // Small
+    labelLarge: body(INTER_FAMILY.semibold, 16, 20), // buttons
+    labelMedium: body(INTER_FAMILY.semibold, 13, 16, 0.78), // Label (apply uppercase via SectionLabel)
+    labelSmall: body(INTER_FAMILY.medium, 12, 16, 0.2), // Caption
+  },
+});

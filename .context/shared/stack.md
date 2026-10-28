@@ -13,4 +13,4 @@
 
 ## Reasoning
 
-`package.json` is the only language manifest in the repo (no `composer.json`, `pyproject.toml`, `Gemfile`, `go.mod` or `Cargo.toml`), and its content — `expo`, `react-native`, `jest-expo`, `@expo-google-fonts/*` — agrees with `app.json` (Expo config, `ios`/`android` bundle IDs `com.packmyholiday`), `eas.json` (EAS build profiles) and the `src/` layout (RN components/screens). No manifest was discounted. The `docs/superpowers/` specs describe a planned website and backend, but no such code exists in this repo.
+`package.json` is the only language manifest in the repo (no `composer.json`, `pyproject.toml`, `Gemfile`, `go.mod` or `Cargo.toml`), and its content — `expo`, `react-native`, `jest-expo`, `@expo-google-fonts/{bricolage-grotesque,inter}`, `react-native-svg` — agrees with `app.json` (Expo config, `ios`/`android` bundle IDs `com.packmyholiday`), `eas.json` (EAS build profiles) and the `src/` layout (RN components/screens). No manifest was discounted. The `docs/superpowers/` specs describe a planned website and backend, but no such code exists in this repo.

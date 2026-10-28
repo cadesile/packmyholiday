@@ -1,16 +1,21 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, SectionList, StyleSheet, View } from 'react-native';
-import { Button, Dialog, IconButton, Portal, Text, TextInput, useTheme } from 'react-native-paper';
+import { Platform, Pressable, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { Dialog, Icon, Portal, Text, TextInput, useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppButton } from '../components/AppButton';
 import { WeightBudgetBar } from '../components/WeightBudgetBar';
 import { PackingItemRow } from '../components/PackingItemRow';
+import { SectionLabel } from '../components/SectionLabel';
 import { SelectableChip } from '../components/SelectableChip';
 import { TripSummaryCard } from '../components/TripSummaryCard';
-import { PillButton } from '../components/PillButton';
 import { useTripStore } from '../state/useTripStore';
 import { buildTravelerLabels } from '../utils/travelerLabel';
 import { hasTripChanged } from '../utils/tripDiff';
-import { HIT_SLOP_MIN } from '../theme/touchTargets';
+import { INTER_FAMILY } from '../theme/fonts';
 import { CATEGORY_COLORS } from '../theme/paperTheme';
+import { RADII } from '../theme/radii';
+import { CONTROL_HEIGHT, SCREEN_GUTTER } from '../theme/spacing';
+import { MIN_TOUCH } from '../theme/touchTargets';
 import type { PackingItem } from '../types/packing';
 
 const CATEGORY_TABS: { value: PackingItem['category']; label: string; icon: string }[] = [
@@ -29,6 +34,7 @@ interface OutputScreenProps {
 
 export function OutputScreen({ onDone }: OutputScreenProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const currentPlan = useTripStore((s) => s.currentPlan);
   const draftConfig = useTripStore((s) => s.draftConfig);
   const travelers = useTripStore((s) => s.draftConfig.travelers);
@@ -90,7 +96,7 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
     return (
       <View style={styles.centered}>
         <Text variant="titleMedium">No packing plan yet.</Text>
-        <PillButton onPress={onDone}>Back to Wizard</PillButton>
+        <AppButton onPress={onDone}>Back to wizard</AppButton>
       </View>
     );
   }
@@ -102,50 +108,72 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text variant="headlineSmall">Your Packing Plan</Text>
-        {hasSuggestions ? (
-          <IconButton
-            icon={currentPlan.isOverWeight ? 'alert-circle' : 'information-outline'}
-            iconColor={currentPlan.isOverWeight ? theme.colors.error : theme.colors.primary}
-            hitSlop={HIT_SLOP_MIN}
-            accessibilityLabel="View packing suggestions"
-            onPress={() => setSuggestionsVisible(true)}
-          />
-        ) : null}
-      </View>
+      <View style={styles.top}>
+        <View style={styles.titleRow}>
+          <Text variant="headlineMedium" accessibilityRole="header" style={styles.title}>
+            Your packing plan
+          </Text>
+          <AppButton variant="text" onPress={onDone}>
+            New trip
+          </AppButton>
+          {hasSuggestions ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View packing suggestions"
+              onPress={() => setSuggestionsVisible(true)}
+              style={[
+                styles.roundButton,
+                {
+                  backgroundColor: currentPlan.isOverWeight ? theme.colors.errorContainer : theme.colors.surface,
+                  borderColor: currentPlan.isOverWeight ? theme.colors.error : theme.colors.outlineVariant,
+                },
+              ]}
+            >
+              <Icon
+                source={currentPlan.isOverWeight ? 'alert-circle-outline' : 'information-outline'}
+                size={20}
+                color={currentPlan.isOverWeight ? theme.colors.error : theme.colors.primary}
+              />
+            </Pressable>
+          ) : null}
+        </View>
 
-      <TripSummaryCard
-        destination={draftConfig.destination}
-        climate={draftConfig.climate}
-        startDate={draftConfig.startDate}
-        endDate={draftConfig.endDate}
-        durationDays={draftConfig.durationDays}
-        travelerCount={travelers.length}
-        totalItems={totalItemCount}
-        packedItems={packedItemCount}
-      />
+        <TripSummaryCard
+          destination={draftConfig.destination}
+          climate={draftConfig.climate}
+          startDate={draftConfig.startDate}
+          endDate={draftConfig.endDate}
+          durationDays={draftConfig.durationDays}
+          travelerCount={travelers.length}
+          totalItems={totalItemCount}
+          packedItems={packedItemCount}
+        />
 
-      <View style={styles.header}>
         <WeightBudgetBar
           totalEstimatedWeightKg={currentPlan.totalEstimatedWeightKg}
           maxAllowedWeightKg={currentPlan.maxAllowedWeightKg}
           isOverWeight={currentPlan.isOverWeight}
         />
-      </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabsContent}>
-        {CATEGORY_TABS.map((tab) => (
-          <SelectableChip
-            key={tab.value}
-            label={tab.label}
-            icon={tab.icon}
-            badgeColor={CATEGORY_COLORS[tab.value]}
-            selected={category === tab.value}
-            onPress={() => setCategory(tab.value)}
-          />
-        ))}
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScroll}
+          contentContainerStyle={styles.tabsContent}
+          accessibilityRole="tablist"
+        >
+          {CATEGORY_TABS.map((tab) => (
+            <SelectableChip
+              key={tab.value}
+              label={tab.label}
+              icon={tab.icon}
+              badgeColor={CATEGORY_COLORS[tab.value]}
+              selected={category === tab.value}
+              onPress={() => setCategory(tab.value)}
+            />
+          ))}
+        </ScrollView>
+      </View>
 
       <SectionList
         style={styles.list}
@@ -172,38 +200,60 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
         )}
         contentContainerStyle={styles.listContent}
         stickySectionHeadersEnabled
-        ListEmptyComponent={<Text style={styles.emptyText}>No items in this category.</Text>}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>No items in this category.</Text>
+        }
       />
 
-      <View style={styles.saveRow}>
-        <TextInput
-          label="Trip name"
-          value={displayName}
-          onChangeText={loadedTrip ? undefined : setTripName}
-          disabled={!!loadedTrip}
-          mode="outlined"
-          style={styles.saveInput}
-        />
-        <PillButton
+      <View
+        style={[
+          styles.saveBar,
+          {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.outlineVariant,
+            paddingBottom: Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
+        <View style={styles.saveField}>
+          <SectionLabel>Trip name</SectionLabel>
+          <TextInput
+            accessibilityLabel="Trip name"
+            placeholder="Name this trip"
+            value={displayName}
+            onChangeText={loadedTrip ? undefined : setTripName}
+            disabled={!!loadedTrip}
+            mode="outlined"
+            outlineColor={theme.colors.outlineVariant}
+            activeOutlineColor={theme.colors.primary}
+            outlineStyle={styles.inputOutline}
+            contentStyle={styles.inputContent}
+            style={[styles.saveInput, { backgroundColor: theme.colors.surface }]}
+          />
+        </View>
+        <AppButton
           disabled={loadedTrip ? !isDirty : !displayName.trim()}
           onPress={async () => {
             await saveTrip(displayName.trim());
             setTripName('');
           }}
         >
-          Save Trip
-        </PillButton>
+          Save trip
+        </AppButton>
       </View>
 
-      <Button mode="text" onPress={onDone}>
-        Back to Wizard
-      </Button>
-
       <Portal>
-        <Dialog visible={suggestionsVisible} onDismiss={() => setSuggestionsVisible(false)}>
-          <Dialog.Icon icon={currentPlan.isOverWeight ? 'alert-circle' : 'information-outline'} />
+        <Dialog
+          visible={suggestionsVisible}
+          onDismiss={() => setSuggestionsVisible(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Icon
+            icon={currentPlan.isOverWeight ? 'alert-circle-outline' : 'information-outline'}
+            color={currentPlan.isOverWeight ? theme.colors.error : theme.colors.primary}
+          />
           <Dialog.Title style={styles.dialogTitle}>
-            {currentPlan.isOverWeight ? 'Over Weight Budget' : 'Suggestions'}
+            {currentPlan.isOverWeight ? 'Over weight budget' : 'Suggestions'}
           </Dialog.Title>
           <Dialog.Content>
             {currentPlan.optimizationSuggestions.map((suggestion, index) => (
@@ -213,7 +263,9 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
             ))}
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setSuggestionsVisible(false)}>Close</Button>
+            <AppButton variant="text" onPress={() => setSuggestionsVisible(false)}>
+              Close
+            </AppButton>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -224,20 +276,30 @@ export function OutputScreen({ onDone }: OutputScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    gap: 8,
+  },
+  top: {
+    paddingHorizontal: SCREEN_GUTTER,
+    paddingTop: 8,
+    gap: 14,
   },
   titleRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 4,
   },
-  header: {
-    marginBottom: 4,
+  title: {
+    flex: 1,
+  },
+  roundButton: {
+    width: MIN_TOUCH,
+    height: MIN_TOUCH,
+    borderRadius: MIN_TOUCH / 2,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsScroll: {
-    marginVertical: 4,
-    height: 44,
+    marginHorizontal: -SCREEN_GUTTER,
     flexGrow: 0,
     flexShrink: 0,
   },
@@ -245,37 +307,66 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingRight: 8,
+    paddingHorizontal: SCREEN_GUTTER,
+    paddingBottom: 2,
   },
   list: {
     flex: 1,
   },
   listContent: {
-    paddingVertical: 8,
+    paddingHorizontal: SCREEN_GUTTER,
+    paddingBottom: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    paddingVertical: 8,
+    paddingTop: 12,
+    paddingBottom: 6,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 24,
   },
-  saveRow: {
+  saveBar: {
     flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    gap: 12,
+    paddingTop: 14,
+    paddingHorizontal: SCREEN_GUTTER,
+    borderTopWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0E2A33',
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: -6 },
+      },
+      default: { elevation: 8 },
+    }),
+  },
+  saveField: {
+    flex: 1,
+    gap: 4,
   },
   saveInput: {
-    flex: 1,
+    height: CONTROL_HEIGHT,
+  },
+  inputOutline: {
+    borderRadius: RADII.inputs,
+    borderWidth: 1.5,
+  },
+  inputContent: {
+    fontFamily: INTER_FAMILY.medium,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
+  },
+  dialog: {
+    borderRadius: RADII.hero,
   },
   dialogTitle: {
     textAlign: 'center',

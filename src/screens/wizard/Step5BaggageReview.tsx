@@ -1,10 +1,13 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { HelperText, IconButton, Text } from 'react-native-paper';
+import { Icon, Text, useTheme } from 'react-native-paper';
+import { InfoBanner } from '../../components/InfoBanner';
+import { Stepper } from '../../components/Stepper';
 import { WizardStepLayout } from '../../components/WizardStepLayout';
 import { useTripStore } from '../../state/useTripStore';
 import { getAirlinePreset } from '../../data/airlineCatalog';
-import { HIT_SLOP_MIN } from '../../theme/touchTargets';
+import { INTER_FAMILY } from '../../theme/fonts';
+import { RADII } from '../../theme/radii';
 
 export function Step5BaggageReview() {
   const draftConfig = useTripStore((s) => s.draftConfig);
@@ -16,73 +19,97 @@ export function Step5BaggageReview() {
 
   return (
     <WizardStepLayout
-      title="Baggage Review"
+      title="How much are you taking?"
+      stepName="Baggage review"
       stepNumber={5}
       totalSteps={5}
       onBack={prevStep}
       onNext={computePlan}
-      nextLabel="Generate Packing Plan"
-      stickerIcon="bag-suitcase"
-      stickerColor="sky"
+      nextLabel="Generate packing plan"
     >
       {airlinePreset ? (
-        <HelperText type="info" visible>
-          {airlinePreset.name} allows ~{airlinePreset.defaultCheckedWeightKg}kg checked /{' '}
-          {airlinePreset.defaultCabinWeightKg}kg cabin per bag. Confirm the bag counts below — these are still
-          yours to edit.
-        </HelperText>
+        <InfoBanner>
+          {`${airlinePreset.name} allows about ${airlinePreset.defaultCheckedWeightKg}kg checked and ${airlinePreset.defaultCabinWeightKg}kg cabin per bag. Confirm the bag counts below. They’re still yours to edit.`}
+        </InfoBanner>
       ) : null}
 
-      <View style={styles.stepperRow}>
-        <Text variant="titleMedium">Checked Bags (~23kg each)</Text>
-        <View style={styles.stepperControls}>
-          <IconButton
-            icon="minus"
-            mode="outlined"
-            hitSlop={HIT_SLOP_MIN}
-            onPress={() => updateDraftConfig({ checkedBags: Math.max(0, draftConfig.checkedBags - 1) })}
-          />
-          <Text variant="headlineSmall">{draftConfig.checkedBags}</Text>
-          <IconButton
-            icon="plus"
-            mode="outlined"
-            hitSlop={HIT_SLOP_MIN}
-            onPress={() => updateDraftConfig({ checkedBags: draftConfig.checkedBags + 1 })}
-          />
-        </View>
-      </View>
-
-      <View style={styles.stepperRow}>
-        <Text variant="titleMedium">Cabin Bags (~10kg each)</Text>
-        <View style={styles.stepperControls}>
-          <IconButton
-            icon="minus"
-            mode="outlined"
-            hitSlop={HIT_SLOP_MIN}
-            onPress={() => updateDraftConfig({ cabinBags: Math.max(0, draftConfig.cabinBags - 1) })}
-          />
-          <Text variant="headlineSmall">{draftConfig.cabinBags}</Text>
-          <IconButton
-            icon="plus"
-            mode="outlined"
-            hitSlop={HIT_SLOP_MIN}
-            onPress={() => updateDraftConfig({ cabinBags: draftConfig.cabinBags + 1 })}
-          />
-        </View>
-      </View>
+      <BagCard
+        icon="bag-suitcase-outline"
+        title="Checked bags"
+        caption="About 23kg each"
+        value={draftConfig.checkedBags}
+        noun="checked bags"
+        onChange={(checkedBags) => updateDraftConfig({ checkedBags })}
+      />
+      <BagCard
+        icon="bag-carry-on"
+        title="Cabin bags"
+        caption="About 10kg each"
+        value={draftConfig.cabinBags}
+        noun="cabin bags"
+        onChange={(cabinBags) => updateDraftConfig({ cabinBags })}
+      />
     </WizardStepLayout>
   );
 }
 
+function BagCard({
+  icon,
+  title,
+  caption,
+  value,
+  noun,
+  onChange,
+}: {
+  icon: string;
+  title: string;
+  caption: string;
+  value: number;
+  noun: string;
+  onChange: (value: number) => void;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}>
+      <View style={[styles.iconTile, { backgroundColor: theme.colors.primaryContainer }]}>
+        <Icon source={icon} size={28} color={theme.colors.primary} />
+      </View>
+      <View style={styles.text}>
+        <Text variant="bodyLarge" style={{ fontFamily: INTER_FAMILY.semibold }}>
+          {title}
+        </Text>
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          {caption}
+        </Text>
+      </View>
+      <Stepper
+        value={value}
+        accessibilityNoun={noun}
+        onDecrement={() => onChange(Math.max(0, value - 1))}
+        onIncrement={() => onChange(value + 1)}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  stepperRow: {
+  card: {
+    borderWidth: 1,
+    borderRadius: RADII.cards,
+    padding: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 14,
   },
-  stepperControls: {
-    flexDirection: 'row',
+  iconTile: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+  },
+  text: {
+    flex: 1,
+    gap: 2,
   },
 });

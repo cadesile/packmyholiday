@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Appbar, Text, useTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
+import { AppHeader } from '../components/AppHeader';
 import { Step1LogisticsAirline } from '../screens/wizard/Step1LogisticsAirline';
 import { Step2Travelers } from '../screens/wizard/Step2Travelers';
 import { Step3ActivityMatrix } from '../screens/wizard/Step3ActivityMatrix';
@@ -9,7 +10,6 @@ import { Step5BaggageReview } from '../screens/wizard/Step5BaggageReview';
 import { OutputScreen } from '../screens/OutputScreen';
 import { SavedTripsScreen } from '../screens/SavedTripsScreen';
 import { useTripStore } from '../state/useTripStore';
-import { FRAUNCES_FAMILY } from '../theme/fonts';
 
 type Screen = 'wizard' | 'output' | 'savedTrips';
 
@@ -20,20 +20,6 @@ const WIZARD_STEPS: Record<number, React.ComponentType> = {
   4: Step4HealthHygiene,
   5: Step5BaggageReview,
 };
-
-function AppTitle() {
-  const theme = useTheme();
-  return (
-    <Text variant="titleLarge" style={{ fontFamily: FRAUNCES_FAMILY.bold }}>
-      <Text variant="titleLarge" style={{ color: theme.colors.onSurface, fontFamily: FRAUNCES_FAMILY.bold }}>
-        pack
-      </Text>
-      <Text variant="titleLarge" style={{ color: theme.colors.primary, fontFamily: FRAUNCES_FAMILY.bold }}>
-        myholiday
-      </Text>
-    </Text>
-  );
-}
 
 export function RootNavigator() {
   const theme = useTheme();
@@ -73,10 +59,10 @@ export function RootNavigator() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header style={{ backgroundColor: theme.colors.surface }} elevated={false}>
-        <Appbar.Content title={<AppTitle />} />
-        <Appbar.Action icon="bookmark-multiple-outline" color={theme.colors.primary} onPress={() => setScreen('savedTrips')} />
-      </Appbar.Header>
+      <AppHeader
+        savedActive={screen === 'savedTrips'}
+        onPressSaved={() => setScreen(screen === 'savedTrips' ? (currentPlan ? 'output' : 'wizard') : 'savedTrips')}
+      />
       <View style={styles.body}>{body}</View>
     </View>
   );

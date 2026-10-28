@@ -1,282 +1,201 @@
 #!/usr/bin/env node
 /**
- * Asset variant generator for Wunderkind Factory
+ * Brand asset generator for packmyholiday ("Lagoon & Sun").
  *
- * Input:  assets/logo_master.png  (place your high-res source here, min 1024×1024)
- * Output: all required app icon and splash variants in assets/
+ * Draws the "sunrise case" mark from code (one geometry, several colourways),
+ * writes the SVG sources to assets/brand/ and rasterises every app icon and
+ * splash variant into assets/. No bitmap input: edit the geometry or the
+ * palette below and re-run.
  *
- * Key design decisions:
- *  - kernel: 'nearest' throughout — preserves pixel-art sharpness (no Lanczos blur)
- *  - Android foreground: content kept within the inner 66% safe zone (outer 34% masked by launchers)
- *  - Splash: solid WK.greenDark background (#1a5c2a), no alpha channel (iOS shows black on transparent)
- *  - All metadata stripped (withMetadata: false)
- *
- * Usage:
  *   node scripts/generate-assets.js
- *   node scripts/generate-assets.js --input assets/my_logo.png
+ *
+ * Outputs
+ *   assets/icon.png                       iOS / general icon, 1024, opaque (App Store rejects alpha)
+ *   assets/icon-dark.png                  iOS 18 dark appearance, 1024, opaque
+ *   assets/icon-tinted.png                iOS 18 tinted appearance, 1024, opaque greyscale
+ *   assets/android-icon-foreground.png    adaptive foreground, 1024, transparent, inside the 66% safe zone
+ *   assets/android-icon-monochrome.png    Android 13+ themed icon, 1024, alpha-only silhouette
+ *   assets/notification-icon.png          status-bar icon, 1024, white silhouette on transparent
+ *   assets/splash-icon.png                splash logo, 1024, transparent (colour comes from app.json)
+ *   assets/favicon.png                    web, 48
+ *   assets/store/play-store-icon-512.png  Google Play listing icon
+ *   assets/brand/*.svg                    vector sources
+ *
+ * The Android adaptive background is a flat colour in app.json
+ * (android.adaptiveIcon.backgroundColor = LAGOON), so no background bitmap exists.
  */
 
 const sharp = require('sharp');
-const path  = require('path');
-const fs    = require('fs');
+const path = require('path');
+const fs = require('fs');
 
-// ── Config ────────────────────────────────────────────────────────────────────
+const ROOT = path.resolve(__dirname, '..');
+const ASSETS = path.join(ROOT, 'assets');
+const BRAND = path.join(ASSETS, 'brand');
+const STORE = path.join(ASSETS, 'store');
 
-const ROOT       = path.resolve(__dirname, '..');
-const ASSETS_DIR = path.join(ROOT, 'assets');
+// ── Palette (keep in sync with src/theme/paperTheme.ts BRAND + darkTheme) ─────
+const LAGOON = '#0B6B73';
+const SUN = '#FFB627';
+const INK = '#0E2A33';
+const WHITE = '#FFFFFF';
+const DARK_GROUND = '#0A1A20';
+const DARK_PRIMARY = '#5CCBD1';
+const DARK_SUN = '#FFC857';
 
-const INPUT_FLAG = process.argv.indexOf('--input');
-const INPUT_FILE = INPUT_FLAG !== -1
-  ? path.resolve(process.argv[INPUT_FLAG + 1])
-  : path.join(ASSETS_DIR, 'logo_master.png');
+// ── Geometry: 64x64 grid, content spans x 6..58, y 10..58 ─────────────────────
+const HANDLE = 'M23 22v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6';
+const SUN_SHAPE = 'M20 46a12 12 0 0 1 24 0z';
+const RAYS = 'M32 31v-3.5M21.4 35.4l-2.5-2.5M42.6 35.4l2.5-2.5';
+const HORIZON = { x: 14, y: 48.5, width: 36, height: 3.5, rx: 1.75 };
+const MARK_CENTER = { x: 32, y: 34 }; // centre of the content box, in grid units
 
-// Separate source for the Android notification icon — a two-layer vector mark
-// (dark pattern layer + light background-fill layer) rather than logo_master.png.
-// logo_master.png is a full-bleed gradient badge with no isolated silhouette, so
-// it can't be reduced to a legible monochrome shape; this SVG can.
-const NOTIFICATION_SVG_FILE = path.join(ASSETS_DIR, 'notification_icon.svg');
+/**
+ * One mark. `cutouts: true` punches the sun, rays and horizon out of the case
+ * (transparent holes) instead of painting them: used for the silhouettes.
+ */
+function markGroup({ size, handle, body, sun, horizon, cutouts = false, id = 'm' }) {
+  const s = size;
+  const tx = 512 - MARK_CENTER.x * s;
+  const ty = 512 - MARK_CENTER.y * s;
+  const h = HORIZON;
+  const horizonRect = `<rect x="${h.x}" y="${h.y}" width="${h.width}" height="${h.height}" rx="${h.rx}"`;
 
-// WK.greenDark — matches app background so splash → app transition is seamless
-const SPLASH_BG = '#1a5c2a';
+  if (cutouts) {
+    return `<g transform="translate(${tx} ${ty}) scale(${s})">
+  <defs>
+    <mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="${SUN_SHAPE}" fill="#000"/>
+      <path d="${RAYS}" stroke="#000" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      ${horizonRect} fill="#000"/>
+    </mask>
+  </defs>
+  <path d="${HANDLE}" fill="none" stroke="${handle}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="6" y="22" width="52" height="36" rx="10" fill="${body}" mask="url(#${id})"/>
+</g>`;
+  }
 
-// ── Variant definitions ───────────────────────────────────────────────────────
+  return `<g transform="translate(${tx} ${ty}) scale(${s})">
+  <path d="${HANDLE}" fill="none" stroke="${handle}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="6" y="22" width="52" height="36" rx="10" fill="${body}"/>
+  <path d="${SUN_SHAPE}" fill="${sun}"/>
+  <path d="${RAYS}" stroke="${sun}" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+  ${horizonRect} fill="${horizon}"/>
+</g>`;
+}
 
-const VARIANTS = [
-  {
-    name: 'icon.png',
-    // iOS icon: 1024×1024, no alpha (App Store rejects transparent icons)
-    width: 1024,
-    height: 1024,
-    alpha: false,
-    background: SPLASH_BG,
-    padding: 0,
-    description: 'iOS / general app icon',
-  },
-  {
-    name: 'favicon.png',
-    // Web favicon: 32×32
-    width: 32,
-    height: 32,
-    alpha: true,
-    background: null,
-    padding: 0,
-    description: 'Web favicon',
-  },
-  {
-    name: 'android-icon-foreground.png',
-    // Android adaptive foreground: 1024×1024 canvas, logo confined to inner 66%
-    // Outer 34% is the "bleed zone" masked by launcher shapes (circle, squircle, etc.)
-    // Safe zone = 1024 * 0.66 = ~676px centred → padding of ~174px each side
-    width: 1024,
-    height: 1024,
-    alpha: true,
-    background: null,
-    safezone: true, // see processing below
-    description: 'Android adaptive icon foreground (66% safe zone)',
-  },
-  {
-    name: 'android-icon-monochrome.png',
-    // Android 13+ monochrome icon: same safe-zone rules as foreground, greyscale
-    width: 1024,
-    height: 1024,
-    alpha: true,
-    background: null,
-    safezone: true,
-    greyscale: true,
-    description: 'Android monochrome icon (API 33+)',
-  },
-  {
-    name: 'notification-icon.png',
-    // Android status-bar notification icon: pure white silhouette on transparent
-    // background (API 21+ ignores RGB and tints white/accent-color automatically).
-    // Sourced from assets/notification_icon.svg (not logo_master.png — see
-    // NOTIFICATION_SVG_FILE comment above) using only its dark "layer1" pattern,
-    // recoloured white. Same 66% safe-zone convention as android-icon-foreground/
-    // monochrome; the expo-notifications config plugin downsamples this single
-    // source to the actual mdpi(24)/hdpi(36)/xhdpi(48)/xxhdpi(72)/xxxhdpi(96)
-    // drawables at prebuild.
-    width: 1024,
-    height: 1024,
-    alpha: true,
-    background: null,
-    safezone: true,
-    notificationIcon: true,
-    description: 'Android notification icon (white silhouette, API 21+)',
-  },
-  {
-    name: 'splash-icon.png',
-    // Expo splash: 1284×2778 (iPhone 14 Pro Max) with solid background
-    // No alpha — iOS will render black background on transparent splash PNGs
-    width: 1284,
-    height: 2778,
-    alpha: false,
-    background: SPLASH_BG,
-    logoSize: 840, // logo drawn at 840px centred on the canvas (~65% of 1284px width)
-    description: 'Splash screen (iPhone 14 Pro Max resolution)',
-  },
+function svg1024(inner, background) {
+  const bg = background ? `<rect width="1024" height="1024" fill="${background}"/>` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+${bg}
+${inner}
+</svg>
+`;
+}
+
+// scale = px per grid unit. Content is 52 units wide.
+const ICON_SCALE = 12.2; // ~62% of the canvas: iOS applies its own corner mask
+const SAFE_SCALE = 9.2; // diagonal of the 52x48 box stays inside the 676px (66%) safe circle
+const SPLASH_SCALE = 16.5; // ~84% of the transparent splash canvas
+
+const SOURCES = {
+  // Full-colour mark on transparent, for in-app and web use.
+  'logo-mark.svg': svg1024(
+    markGroup({ size: ICON_SCALE * 1.4, handle: INK, body: LAGOON, sun: SUN, horizon: WHITE })
+  ),
+  'logo-mark-reversed.svg': svg1024(
+    markGroup({ size: ICON_SCALE * 1.4, handle: WHITE, body: WHITE, sun: SUN, horizon: LAGOON })
+  ),
+  // iOS light: white case on Lagoon.
+  'app-icon.svg': svg1024(
+    markGroup({ size: ICON_SCALE, handle: WHITE, body: WHITE, sun: SUN, horizon: LAGOON }),
+    LAGOON
+  ),
+  // iOS dark: lifted teal case on the dark ground.
+  'app-icon-dark.svg': svg1024(
+    markGroup({ size: ICON_SCALE, handle: DARK_PRIMARY, body: DARK_PRIMARY, sun: DARK_SUN, horizon: DARK_GROUND }),
+    DARK_GROUND
+  ),
+  // iOS tinted: luminance only; the system applies the tint.
+  'app-icon-tinted.svg': svg1024(
+    markGroup({ size: ICON_SCALE, handle: '#FFFFFF', body: '#FFFFFF', sun: '#8C8C8C', horizon: '#000000' }),
+    '#000000'
+  ),
+  // Android 13+ themed icon and status-bar icon: alpha is all that matters.
+  'android-monochrome.svg': svg1024(
+    markGroup({ size: SAFE_SCALE, handle: '#000000', body: '#000000', cutouts: true, id: 'mono' })
+  ),
+  'notification-icon.svg': svg1024(
+    markGroup({ size: SAFE_SCALE, handle: WHITE, body: WHITE, cutouts: true, id: 'notif' })
+  ),
+  'splash-mark.svg': svg1024(
+    markGroup({ size: SPLASH_SCALE, handle: INK, body: LAGOON, sun: SUN, horizon: WHITE })
+  ),
+};
+
+// Android adaptive foreground: transparent, with the horizon as a real cut-out
+// so the flat adaptive background shows through whatever colour it is. The
+// shared cut-out path would also remove the sun, so this one is built explicitly.
+SOURCES['android-foreground.svg'] = (() => {
+  const s = SAFE_SCALE;
+  const tx = 512 - MARK_CENTER.x * s;
+  const ty = 512 - MARK_CENTER.y * s;
+  const h = HORIZON;
+  return svg1024(`<g transform="translate(${tx} ${ty}) scale(${s})">
+  <defs>
+    <mask id="fg" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <rect x="${h.x}" y="${h.y}" width="${h.width}" height="${h.height}" rx="${h.rx}" fill="#000"/>
+    </mask>
+  </defs>
+  <path d="${HANDLE}" fill="none" stroke="${WHITE}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="6" y="22" width="52" height="36" rx="10" fill="${WHITE}" mask="url(#fg)"/>
+  <path d="${SUN_SHAPE}" fill="${SUN}"/>
+  <path d="${RAYS}" stroke="${SUN}" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+</g>`);
+})();
+
+// ── Raster targets ────────────────────────────────────────────────────────────
+const TARGETS = [
+  { out: 'icon.png', src: 'app-icon.svg', size: 1024, opaque: true, note: 'iOS / general icon' },
+  { out: 'icon-dark.png', src: 'app-icon-dark.svg', size: 1024, opaque: true, note: 'iOS dark appearance' },
+  { out: 'icon-tinted.png', src: 'app-icon-tinted.svg', size: 1024, opaque: true, greyscale: true, note: 'iOS tinted appearance' },
+  { out: 'android-icon-foreground.png', src: 'android-foreground.svg', size: 1024, note: 'Android adaptive foreground' },
+  { out: 'android-icon-monochrome.png', src: 'android-monochrome.svg', size: 1024, note: 'Android themed (API 33+)' },
+  { out: 'notification-icon.png', src: 'notification-icon.svg', size: 1024, note: 'Android notification, white silhouette' },
+  { out: 'splash-icon.png', src: 'splash-mark.svg', size: 1024, note: 'Splash logo (transparent)' },
+  { out: 'favicon.png', src: 'logo-mark.svg', size: 48, trim: true, note: 'Web favicon' },
+  { out: path.join('store', 'play-store-icon-512.png'), src: 'app-icon.svg', size: 512, opaque: true, note: 'Google Play listing icon' },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+async function main() {
+  fs.mkdirSync(BRAND, { recursive: true });
+  fs.mkdirSync(STORE, { recursive: true });
 
-function safezoneSize(canvasSize) {
-  return Math.round(canvasSize * 0.66);
-}
-
-function safezoneOffset(canvasSize, innerSize) {
-  return Math.round((canvasSize - innerSize) / 2);
-}
-
-// ── Main ──────────────────────────────────────────────────────────────────────
-
-async function generate() {
-  if (!fs.existsSync(INPUT_FILE)) {
-    console.error(`\n  ERROR: Source file not found: ${INPUT_FILE}`);
-    console.error('  Place your high-resolution logo at assets/logo_master.png');
-    console.error('  or pass --input <path>\n');
-    process.exit(1);
+  for (const [name, content] of Object.entries(SOURCES)) {
+    fs.writeFileSync(path.join(BRAND, name), content);
   }
+  console.log(`\n  Wrote ${Object.keys(SOURCES).length} SVG sources to ${path.relative(ROOT, BRAND)}/\n`);
 
-  console.log(`\n  Source: ${path.relative(ROOT, INPUT_FILE)}`);
-  console.log(`  Output: ${path.relative(ROOT, ASSETS_DIR)}/\n`);
-
-  for (const variant of VARIANTS) {
-    const outPath = path.join(ASSETS_DIR, variant.name);
-
-    try {
-      if (variant.notificationIcon) {
-        // Android notification icon: rasterize only notification_icon.svg's dark
-        // "layer1" (the actual mark — a pattern of paths filled #161616), dropping
-        // the light "layer2" background-fill layer entirely, and recolour the
-        // kept layer to solid white. Android ignores RGB on notification icons
-        // and tints the shape itself, so anything left un-silhouetted would
-        // either be ignored or render as a solid white blob.
-        const innerSize = safezoneSize(variant.width);
-        const offset    = safezoneOffset(variant.width, innerSize);
-        let whiteSilhouette;
-
-        if (fs.existsSync(NOTIFICATION_SVG_FILE)) {
-          const svgSource = fs.readFileSync(NOTIFICATION_SVG_FILE, 'utf8');
-          const markOnly = svgSource
-            .replace(/<g id="layer2"[\s\S]*?<\/g>\s*/, '')
-            .replace(/fill="#161616"/g, 'fill="#ffffff"')
-            .replace('<svg ', '<svg shape-rendering="crispEdges" ');
-
-          whiteSilhouette = await sharp(Buffer.from(markOnly))
-            .resize(innerSize, innerSize, {
-              fit: 'contain',
-              background: { r: 0, g: 0, b: 0, alpha: 0 },
-            })
-            .toBuffer();
-        } else {
-          console.warn(`  !  ${NOTIFICATION_SVG_FILE} not found, falling back to source logo for notification icon`);
-          const logoResized = await sharp(INPUT_FILE)
-            .resize(innerSize, innerSize, {
-              fit: 'contain',
-              background: { r: 0, g: 0, b: 0, alpha: 0 },
-            })
-            .toBuffer();
-
-          whiteSilhouette = await sharp(logoResized)
-            .linear([0, 0, 0, 1], [255, 255, 255, 0])
-            .toBuffer();
-        }
-
-        await sharp({
-          create: {
-            width: variant.width,
-            height: variant.height,
-            channels: 4,
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          },
-        })
-          .composite([{ input: whiteSilhouette, top: offset, left: offset }])
-          .png({ compressionLevel: 9 })
-          .withMetadata(false)
-          .toFile(outPath);
-
-      } else if (variant.safezone) {
-        // Adaptive icon safe-zone: resize logo to 66% of canvas, embed on transparent base
-        const innerSize = safezoneSize(variant.width);
-        const offset    = safezoneOffset(variant.width, innerSize);
-
-        const resizedLogo = await sharp(INPUT_FILE)
-          .resize(innerSize, innerSize, {
-            kernel: 'nearest',        // pixel-art — no anti-alias blur
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          })
-          .toBuffer();
-
-        await sharp({
-          create: {
-            width: variant.width,
-            height: variant.height,
-            channels: 4,
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          },
-        })
-          .composite([{ input: resizedLogo, top: offset, left: offset }])
-          .png({ compressionLevel: 9 })
-          .withMetadata(false)
-          .toFile(outPath);
-
-      } else if (variant.logoSize) {
-        // Splash: logo centred on solid-colour canvas
-        const logoSize   = variant.logoSize;
-        const offsetX    = Math.round((variant.width  - logoSize) / 2);
-        const offsetY    = Math.round((variant.height - logoSize) / 2);
-
-        const resizedLogo = await sharp(INPUT_FILE)
-          .resize(logoSize, logoSize, {
-            kernel: 'nearest',
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          })
-          .toBuffer();
-
-        await sharp({
-          create: {
-            width: variant.width,
-            height: variant.height,
-            channels: 3,              // RGB only — no alpha on splash
-            background: SPLASH_BG,
-          },
-        })
-          .composite([{ input: resizedLogo, top: offsetY, left: offsetX }])
-          .png({ compressionLevel: 9 })
-          .withMetadata(false)
-          .toFile(outPath);
-
-      } else {
-        // Standard resize
-        let pipeline = sharp(INPUT_FILE)
-          .resize(variant.width, variant.height, {
-            kernel: 'nearest',
-            fit: 'contain',
-            background: variant.background
-              ? variant.background
-              : { r: 0, g: 0, b: 0, alpha: 0 },
-          });
-
-        if (variant.greyscale) pipeline = pipeline.greyscale();
-        if (!variant.alpha)    pipeline = pipeline.flatten({ background: variant.background ?? SPLASH_BG });
-
-        await pipeline
-          .png({ compressionLevel: 9 })
-          .withMetadata(false)
-          .toFile(outPath);
-      }
-
-      const stat = fs.statSync(outPath);
-      const kb   = (stat.size / 1024).toFixed(1);
-      console.log(`  ✓  ${variant.name.padEnd(35)} ${variant.width}×${variant.height}  ${kb} KB  — ${variant.description}`);
-
-    } catch (err) {
-      console.error(`  ✗  ${variant.name}: ${err.message}`);
+  for (const t of TARGETS) {
+    let img = sharp(Buffer.from(SOURCES[t.src]), { density: 144 });
+    if (t.trim) {
+      // Favicon: crop the 1024 canvas to the mark with a little air, then resize.
+      img = sharp(await img.trim().toBuffer()).extend({ top: 4, bottom: 4, left: 4, right: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } });
     }
+    img = img.resize(t.size, t.size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } });
+    if (t.opaque) img = img.flatten({ background: '#000000' }).removeAlpha();
+    if (t.greyscale) img = img.greyscale();
+    const outPath = path.join(ASSETS, t.out);
+    await img.png({ compressionLevel: 9 }).toFile(outPath);
+    const kb = (fs.statSync(outPath).size / 1024).toFixed(1);
+    console.log(`  ✓  ${t.out.padEnd(38)} ${String(t.size).padStart(4)}px  ${kb.padStart(7)} KB  ${t.note}`);
   }
-
-  console.log('\n  Done. Verify assets/ and run `npx expo start` to preview.\n');
+  console.log('\n  Done. Run `npx expo start` to preview, or `npx expo prebuild --clean` to regenerate native icons.\n');
 }
 
-generate();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -7,7 +7,7 @@ A single-app repo: one Expo/React Native client, no backend, no monorepo package
 ## Boot path
 `index.ts` → `registerRootComponent(App)` → `App.tsx` → `src/navigation/RootNavigator.tsx`.
 
-`App.tsx` loads the Geist and Fraunces fonts (holds the splash screen until they load), calls `useTripStore.hydrate()` once, picks `lightTheme` / `darkTheme` from `useColorScheme()`, and wraps the tree in `SafeAreaProvider` → `PaperProvider` → `ErrorBoundary`.
+`App.tsx` loads the Inter and Bricolage Grotesque fonts (holds the splash screen until they load), calls `useTripStore.hydrate()` once, picks `lightTheme` / `darkTheme` from `useColorScheme()`, and wraps the tree in `SafeAreaProvider` → `PaperProvider` → `ErrorBoundary`.
 
 `RootNavigator` is **not** react-navigation (no such dependency). It keeps a local `screen` state (`'wizard' | 'output' | 'savedTrips'`) and, for the wizard, renders `Step1…Step5` according to the store's `wizardStep`. It switches to `output` as soon as the store has a `currentPlan`, and a bookmark `Appbar.Action` opens `savedTrips`.
 
@@ -17,7 +17,7 @@ A single-app repo: one Expo/React Native client, no backend, no monorepo package
 | `navigation/` | 1 / 92 | Screen switching and the app bar (see above) |
 | `screens/wizard/` | 5 / 347 | The 5-step trip wizard: `Step1LogisticsAirline`, `Step2Travelers`, `Step3ActivityMatrix`, `Step4HealthHygiene`, `Step5BaggageReview` |
 | `screens/` | 2 / 384 | `OutputScreen` (generated packing list) and `SavedTripsScreen` |
-| `components/` | 15 / 1001 | Shared UI pieces used by the screens (chips, pickers, cards, rows, buttons, progress dots, error boundary) |
+| `components/` | 21 / 1759 | Shared UI pieces used by the screens (`AppButton`, `AppHeader`, `Logo` (react-native-svg), `StepProgressBar`, chips, tiles, pickers, cards, rows, error boundary) |
 | `state/` | 2 / 353 | `useTripStore.ts` (zustand store: wizard step, draft config, current plan, saved trips) and `storage.ts` (AsyncStorage persistence of saved trips) |
 | `utils/` | 8 / 472 | Pure logic: `packingEngine` (plan generation), `healthEngine`, `sunscreenEngine`, `tripDates`, `tripDiff`, `rounding`, `id`, `travelerLabel` |
 | `data/` | 6 / 784 | Static catalogs and constants: item catalog, infant/toddler/baby-family gear, airline presets, weight constants |

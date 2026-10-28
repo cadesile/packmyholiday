@@ -2,8 +2,12 @@
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
-import { Button, Text, useTheme } from 'react-native-paper';
+import { Icon, Text, useTheme } from 'react-native-paper';
+import { INTER_FAMILY } from '../theme/fonts';
+import { RADII } from '../theme/radii';
+import { CONTROL_HEIGHT } from '../theme/spacing';
 import { formatDisplayDate, parseISODate, toISODateString } from '../utils/tripDates';
+import { AppButton } from './AppButton';
 
 interface TripDateRangePickerProps {
   startDate: string;
@@ -33,17 +37,35 @@ export function TripDateRangePicker({ startDate, endDate, onChange }: TripDateRa
     }
   }
 
+  function renderBox(which: 'start' | 'end', label: string, value: string) {
+    const active = activePicker === which;
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${formatDisplayDate(value)}`}
+        style={[
+          styles.dateBox,
+          {
+            borderColor: active ? theme.colors.primary : theme.colors.outlineVariant,
+            borderWidth: active ? 2 : 1.5,
+            backgroundColor: theme.colors.surface,
+          },
+        ]}
+        onPress={() => setActivePicker(which)}
+      >
+        <Icon source="calendar-blank-outline" size={20} color={theme.colors.primary} />
+        <Text variant="bodyMedium" style={{ fontFamily: INTER_FAMILY.medium, color: theme.colors.onSurface }}>
+          {formatDisplayDate(value)}
+        </Text>
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Pressable style={[styles.dateBox, { borderColor: theme.colors.outline }]} onPress={() => setActivePicker('start')}>
-          <Text variant="labelMedium">Start date</Text>
-          <Text variant="titleMedium">{formatDisplayDate(startDate)}</Text>
-        </Pressable>
-        <Pressable style={[styles.dateBox, { borderColor: theme.colors.outline }]} onPress={() => setActivePicker('end')}>
-          <Text variant="labelMedium">End date</Text>
-          <Text variant="titleMedium">{formatDisplayDate(endDate)}</Text>
-        </Pressable>
+        {renderBox('start', 'Start date', startDate)}
+        {renderBox('end', 'End date', endDate)}
       </View>
 
       {isInvalidRange ? (
@@ -58,14 +80,15 @@ export function TripDateRangePicker({ startDate, endDate, onChange }: TripDateRa
           mode="date"
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           minimumDate={activePicker === 'end' ? parseISODate(startDate) : undefined}
+          accentColor={theme.colors.primary}
           onChange={handleChange}
         />
       ) : null}
 
       {activePicker && Platform.OS === 'ios' ? (
-        <Button mode="text" onPress={() => setActivePicker(null)}>
+        <AppButton variant="text" onPress={() => setActivePicker(null)}>
           Done
-        </Button>
+        </AppButton>
       ) : null}
     </View>
   );
@@ -81,9 +104,11 @@ const styles = StyleSheet.create({
   },
   dateBox: {
     flex: 1,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 8,
-    padding: 12,
-    gap: 2,
+    height: CONTROL_HEIGHT,
+    borderRadius: RADII.inputs,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

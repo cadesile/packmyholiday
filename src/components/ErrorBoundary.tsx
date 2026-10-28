@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { clearSavedTrips } from '../state/storage';
-import { PillButton } from './PillButton';
+import { AppButton } from './AppButton';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           <Text variant="bodyMedium" style={styles.message}>
             {this.state.error.message}
           </Text>
-          <PillButton onPress={this.handleReset}>Reset Saved Trips & Continue</PillButton>
+          <AppButton onPress={this.handleReset}>Reset Saved Trips & Continue</AppButton>
         </View>
       );
     }
