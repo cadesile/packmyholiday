@@ -5,6 +5,6 @@
 > session-start staleness check (see `SKILL.md`'s Triggers table) to find
 > commits that have landed since `.context/` was last reviewed.
 
-- **Commit:** 2bcaaf6
+- **Commit:** 51342a8
 - **Date:** 2026-10-28
-- **Stages touched this pass:** 02_architecture, 05_ui, 06_documentation, 07_synthesis, shared/stack.md (Lagoon & Sun integration; no 03_data/04_interfaces impact).
+- **Stages touched this pass:** shared/stack.md (Expo SDK 54 → 58 upgrade; no stage impact).
