@@ -5,9 +5,9 @@
 > these facts — every other stage references this file, none re-derives it.
 
 - **Primary language:** TypeScript (strict mode; `tsconfig.json` extends `expo/tsconfig.base`). Plain JavaScript only for config/tooling (`jest.config.js`, `scripts/generate-assets.js`).
-- **Framework:** Expo SDK 54 (`expo ^54.0.0`) on React Native 0.81.5 and React 19.1.0. UI kit `react-native-paper ^5.15.3`; client state `zustand ^5.0.14`, persisted with `@react-native-async-storage/async-storage 2.2.0`. Web target via `react-native-web ^0.21.0` / `react-dom 19.1.0`. Tests: `jest-expo ~54.0.17` + `@testing-library/react-native ^14`.
+- **Framework:** Expo SDK 58 (`expo ^58.0.0`) on React Native 0.88.0 and React 19.3.0 (TypeScript ~6.0; needs Node >=22.13, `.nvmrc` pins 24.19.0). UI kit `react-native-paper ^5.15.3`; client state `zustand ^5.0.14`, persisted with `@react-native-async-storage/async-storage 2.2.0`. Web target via `react-native-web ^0.21.0` / `react-dom 19.1.0`. Tests: `jest-expo ~54.0.17` + `@testing-library/react-native ^14`.
 - **App directory:** `.` (repo root). Entry is `index.ts` → `App.tsx`; source is under `src/`.
-- **Dev environment:** No Docker/Lando/devcontainer. Node `24.19.0` (`.nvmrc`); run with `expo start` (`npm start`, `npm run ios|android|web`); tests with `npm test` (`jest`). Native builds via EAS (see `stages/01_overview/output/environment.md`).
+- **Dev environment:** No Docker/Lando/devcontainer. Node `24.19.0` (`.nvmrc`); run with `expo start` (Expo Go must be the SDK 58 build; `jest.config.js` maps `expo-modules-core` from under `expo` because jest-expo 58 requires it un-hoisted) (`npm start`, `npm run ios|android|web`); tests with `npm test` (`jest`). Native builds via EAS (see `stages/01_overview/output/environment.md`).
 - **Database(s):** None. No backend or SQL in this repo; persistence is client-side AsyncStorage only (see `stages/03_data/output/`).
 - **Excluded / vendored directories:** `node_modules/`, `.expo/`, `.superpowers/`, `.claude/`, `.agents/`, `.context/`, and `.envrc` (personal `CLAUDE_CONFIG_DIR` only).
 
